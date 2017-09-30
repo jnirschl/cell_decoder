@@ -1,0 +1,37 @@
+## Usage
+### Training a deep learning model to detect cell type
+```python
+# import relevant modules
+import os
+import cell_decoder
+from cell_decoder.io import DataStruct
+
+# Set the filepath to the mapfiles
+map_file_root = '../mapfiles/
+
+# Set filenames
+train_map = '0_all-cells_train_filepath_labels.tsv'
+test_map = '0_all-cells_test_filepath_labels.tsv'
+valid_map = 'compiled-gray-250_held-out-validation_mapfile.tsv'
+
+# Prepend the map_file_root
+all_mapfiles = []
+for elem in [train_map, test_map, valid_map]:
+    all_mapfiles.append(os.path.join(map_file_root, elem))
+
+# Create a new DataStruct instance:
+#     The DataStruct class contains will hold
+#     all of the relevant information about a dataset
+#     such as images, labels, and models. It also
+#     performs important error checks (e.g. missing images).
+cell_data_struct = DataStruct(all_mapfiles[0])
+
+# Compute the mean image and RGB pixel values
+data_struct.compute_image_mean()
+
+# Create an image reader
+train_mb_source = data_struct.create_mb_source(train_params)
+                                               
+# Train your model
+training_hx = data_struct.train_mode()
+```

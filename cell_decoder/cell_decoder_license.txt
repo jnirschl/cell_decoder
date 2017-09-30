@@ -1,0 +1,14 @@
+# Cell DECODER License Information
+#
+# Copyright (c) 2017 Jeffrey J. Nirschl
+# All rights reserved
+# All contributions by Jeffrey J. Nirschl in the
+# laboratory of Erika Holzbaur at the University
+# of Pennsylvania.
+#
+# MIT License
+# ======================================================================
+
+# TODO -- Update: If you use this for your research, please cite:
+Nirschl JJ, Moore AM, Holzbaur ELF (YYYY). Cell DECODEr: A Deep Learning
+Package for Phenotypic Profiling in Biological Image Analysis.

@@ -1,0 +1,48 @@
+# This file contains information regarding the license
+# and restrictions for using data and images from
+# The Human Protein Atlas. Image data and metadata
+# were downloaded from v16 of The Human Protein Atlas
+# in March 2017.
+#
+# For convenience exploring Cell DECODEr, we include
+# sample images and data from The Human Protein Atlas.
+# The Human Protein Atlas authors retain all copyright.
+# 
+# Copyright (c) 2017 The Human Protein Atlas 
+# All rights reserved
+#
+# CC BY-NC-ND 4.0 License
+# See http://v16.proteinatlas.org/about/licence [sic]
+# ======================================================================
+# Last updated 20170921 Jeffrey Nirschl
+
+# The Human Protein Atlas is licensed as (CC BY-NC-ND 4.0):
+#     NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)
+#     http://v16.proteinatlas.org/about/licence [sic]
+
+# Primary publication citation
+Thul PJ et al, 2017. A subcellular map of the human proteome. Science.
+PubMed: 28495876 DOI: 10.1126/science.aal3321
+
+# Additional publication citation
+Uhlen M et al, 2010. Towards a knowledge-based Human Protein Atlas. Nat Biotechnol.
+PubMed: 21139605 DOI: 10.1038/nbt1210-1248
+
+# Image credit, where applicable: Human Protein Atlas
+
+
+######################################################################
+# Additional license information
+# Copied from https://creativecommons.org/licenses/by-nc-nd/4.0/
+# 
+# Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)
+# 
+#    Free to:
+#    Share — copy and redistribute the material in any medium or format
+#
+#    License restrictions (see http://v16.proteinatlas.org/about/licence):
+#    Attribution — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
+#    NonCommercial — You may not use the material for commercial purposes.
+#    NoDerivatives — If you remix, transform, or build upon the material, you may not distribute the modified material.
+#    No additional restrictions — You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits.
+######################################################################

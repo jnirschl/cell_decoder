@@ -1,0 +1,59 @@
+Cell_ID,Name,Age,Sex,Tissue,Description,Reference,Origin,Sex_ID,Source,Cellosaurus,Transformed_ID,Transformed,Tissue_ID
+1,A-431,85,Female,Skin,Epidermoid carcinoma cell line,"Giard et al., J Natl Cancer Inst 51: 1417 (1973)",Skin,0,DSMZ,CVCL_0037,1,Cancer cell line,11
+2,A549,58,Male,Lung,Lung carcinoma cell line,"Giard et al., J Natl Cancer Inst 51: 1417 (1973)",Lung,1,DSMZ,CVCL_0023,1,Cancer cell line,6
+3,AF22,36,Female,Brain,iPS derived Neuroepithelia stem (NES) cell line,"Falk et al., PLoS One 7(1) (2012)",Skin,0,'’,'’,NaN,'’,2
+4,ASC TERT1,NaN,Female,Sarcoma,Adipose tissue-derived mesenchymal stem cell line,"Wolbank S. et al., Tissue Eng Part A: Jul;15(7):1843-54 (2009)",Adipose tissue,0,Evercyte,CVCL_U602,4,Telomerase immortalized cell line,10
+5,BJ,NaN,Male,Fibroblast,Adherent fibroblast cell line,"Bodnar AG., et al. Science 279: 349-352 (1998)",Foreskin,1,LGC/ATCC,CVCL_3653,2,Finite cell line,5
+6,CACO-2,72,Male,Abdominal,Colon adenocarcinoma cell line,"Fogh J., et al. J. Natl. Cancer Inst. 58: 209 (1977)",Colon,1,DSMZ,CVCL_0025,1,Cancer cell line,1
+7,HEK 293,NaN,Female,"Renal, urinary, male reproductive system","Embryonal kidney cell line, transformed by adenovirus type 5","Graham et al., J Gen Virol 36: 59 (1977)",Embryonal kidney,0,DSMZ,CVCL_0045,5,Transformed cell line,9
+8,HUVEC TERT2,NaN,Female,Endothelial,Umbilical vein endothelial cell line,'’,Umbilical vein,0,Evercyte,CVCL_9Q53,4,Telomerase immortalized cell line,4
+9,HaCaT,NaN,Male,Skin,Keratinocyte cell line,"Boukamp et al., J Cell Biol Mar 106(3): 761 (1988)",Skin,1,NEF3,CVCL_0038,3,Spontaneously immortalized cell line,11
+10,HeLa,31,Female,"Breast, female reproductive system",Cervical epithelial adenocarcinoma cell line,"Scherer et al., J Exp Med 97: 695 (1953)",Cervix,0,DSMZ,CVCL_0030,1,Cancer cell line,3
+11,Hep G2,15,Male,Abdominal,Hepatocellular carcinoma cell line,"Aden et al., Nature 282: 615 (1979)",Liver,1,DSMZ,CVCL_0027,1,Cancer cell line,1
+12,MCF7,69,Female,"Breast, female reproductive system",Metastatic breast adenocarcinoma cell line,"Soule et al., J Natl Cancer Inst 51: 1409 (1973)",Pleural effusion,0,DSMZ,CVCL_0031,1,Cancer cell line,3
+13,NB-4,23,Female,Myeloid,Acute promyelocytic leukemia (APL) cell line,"Lanotte et al., Blood 77: 1080 (1991)",Bone marrow,0,DSMZ,CVCL_0005,1,Cancer cell line,8
+14,PC-3,62,Male,"Renal, urinary, male reproductive system",Metastatic poorly differentiated prostate adenocarcinoma cell line,"Kaighn et al., Invest Urol 17: 16-23 (1979)",Bone marrow,1,DSMZ,CVCL_0035,1,Cancer cell line,9
+15,REH**,15,Female,Lymphoid,"Pre-B cell leukemia cell line (ALL, first relapse)","Rosenfeld et al., Nature 267: 841?3 (1977)",Peripheral blood,0,DSMZ,CVCL_1650,1,Cancer cell line,7
+16,RH-30,17,Male,Sarcoma,Metastatic rhabdomyosarcoma cell line,"Douglass et al., Cytogenet Cell Genet 45: 148-155 (1987)",Bone marrow,1,DSMZ,CVCL_0041,1,Cancer cell line,10
+17,RT4,63,Male,"Renal, urinary, male reproductive system",Urinary bladder transitional cell carcinoma cell line,"Rigby et al., Br J Cancer 24: 746 (1970)",Urinary bladder,1,DSMZ/ECACC,CVCL_0036,1,Cancer cell line,9
+18,SH-SY5Y,4,Female,Brain,"Metastatic neuroblastoma, clonal subline of neuroepithelioma cell line SK-N-SH","Biedler et al., Cancer Res 33: 2643 (1973)",Bone marrow,0,DSMZ,CVCL_0019,1,Cancer cell line,2
+19,SK-MEL-30,67,Male,Skin,Metastatic malignant melanoma cell line,"Carey et al., Proc Natl Acad Sci USA 73: 3278 (1976)",Subcutis,1,DSMZ,CVCL_0039,1,Cancer cell line,11
+20,SiHa,55,Female,"Breast, female reproductive system","Cervical squamous cell carcinoma cell line, integrated 1-2 copies of HPV16","Friedl F. et al.Proc., Soc. Exp. Biol. Med. 135: 543-545 (1970)",Cervix,0,LGC/ATCC,CVCL_0032,1,Cancer cell line,3
+21,U-2 OS,15,Female,Sarcoma,Osteosarcoma cell line,"Ponten J., Saksela E. Int. J. Cancer 2: 434 (1967)",Bone,0,LGC/ATCC,CVCL_0042,1,Cancer cell line,10
+22,U-251 MG,NaN,Male,Brain,Glioblastoma cell line,"Westermark B., Int J Cancer12: 438 (1973)",Brain,1,BW1,CVCL_0021,1,Cancer cell line,2
+NaN,CAPAN-2,56,Male,Abdominal,Pancreas adenocarcinoma cell line,"Kyriazis et al., Cancer Res 46: 5810 (1986)",Pancreas,1,DSMZ,CVCL_0026,1,Cancer cell line,1
+NaN,U-138 MG,47,Male,Brain,Glioblastoma cell line,"Ponten et al., Acta Pathol Microbiol Scand 74: 465 (1968)",Brain,1,DSMZ,CVCL_0020,1,Cancer cell line,2
+NaN,U-87 MG*,44,Male,Brain,"Glioblastoma, astrocytoma cell line","Ponten J., Macintyre EH., Acta Pathol. Microbiol. Scand. 74: 465-486 (1968)",Brain,1,LGC/ATCC,CVCL_0022,1,Cancer cell line,2
+NaN,AN3-CA,55,Female,"Breast, female reproductive system",Metastatic endometrial adenocarcinoma cell line,"Dawe et al., J Natl Cancer Inst 33: 441 (1964)",Lymph node,0,DSMZ,CVCL_0028,1,Cancer cell line,3
+NaN,EFO-21,56,Female,"Breast, female reproductive system",Metastatic ovarian serous cystadenocarcinoma cell line,"Simon et al., J Natl Cancer Inst 70: 839 (1983)",Ascites,0,DSMZ,CVCL_0029,1,Cancer cell line,3
+NaN,SK-BR-3,43,Female,"Breast, female reproductive system",Metastatic breast adenocarcinoma cell line,"Fogh J, editor. Human tumor cells in vitro. New York: Plenum Press (1975)",Pleural effusion,0,LGC/ATCC,CVCL_0033,1,Cancer cell line,3
+NaN,SCLC-21H,46,Male,Lung,Small cell lung carcinoma cell line,"Bepler et al., J Cancer Res Clin Oncol 113: 31 (1987)",Pleural effusion,1,DSMZ,CVCL_0024,1,Cancer cell line,6
+NaN,Daudi,16,Male,Lymphoid,Human Burkitt lymphoma cell line,"Klein et al., Cancer Res 28: 1300 (1968)",Orbital biopsy,1,DSMZ,CVCL_0008,1,Cancer cell line,7
+NaN,HDLM-2,74,Male,Lymphoid,Hodgkin lymphoma cell line,"Drexler et al., Leuk Res 10: 487 (1986)",Pleural effusion,1,DSMZ,CVCL_0009,1,Cancer cell line,7
+NaN,Karpas-707,53,Male,Lymphoid,Multiple myeloma cell line,"Karpas et al., Lancet Apr 24;1(8278): 931-3 (1982)",Bone marrow and peripheral blood,1,KN2,CVCL_0010,1,Cancer cell line,7
+NaN,LP-1,56,Female,Lymphoid,Multiple myeloma cell line,"Pegoraro et al., Blood 73: 1020 (1989)",Peripheral blood,0,DSMZ,CVCL_0012,1,Cancer cell line,7
+NaN,MOLT-4,19,Male,Lymphoid,Acute lymphoblastic leukemia (T-ALL) cell line,"Minowada et al., J Natl Cancer Inst 49: 891 (1972)",Peripheral blood,1,DSMZ,CVCL_0013,1,Cancer cell line,7
+NaN,RPMI-8226,61,Male,Lymphoid,Multiple myeloma cell line,"Matsuoka et al., Proc Soc Exp Biol Med 125: 1246 (1967)",Peripheral blood,1,DSMZ,CVCL_0014,1,Cancer cell line,7
+NaN,U-266/70,53,Male,Lymphoid,"Multiple myeloma cell line (1970, IL-6-dependent)",Nilsson et al Clin Exp Immunol 7:477-489 (1970),Peripheral blood,1,KN2,CVCL_0015,1,Cancer cell line,7
+NaN,U-266/84,53,Male,Lymphoid,"Multiple myeloma cell line (1984, in vitro differentiated)","Hellman et al., Eur J Immunol 18:905-910 (1988)",Peripheral blood,1,KN2,CVCL_0016,1,Cancer cell line,7
+NaN,U-698,7,Male,Lymphoid,B-cell lymphoma cell line (lymphoblastic lymphosarcoma),"Nilsson et al., Int J Cancer 13: 808-823 (1974)",Tonsil,1,DSMZ,CVCL_0017,1,Cancer cell line,7
+NaN,BEWO,NaN,Male,Miscellaneous,Metastatic choriocarcinoma cell line,"Pattillo et al., Cancer Res 28: 1231-1236 (1968)",Brain,1,DSMZ,CVCL_0044,1,Cancer cell line,13
+NaN,HTh 83,67,Male,Miscellaneous,Anaplastic thyroid carcinoma cell line,"Dahlman et al., J. Pathol. 191: 376-386 (2000)",Thyroid,1,NEH5,CVCL_0046,1,Cancer cell line,13
+NaN,HEL,30,Male,Myeloid,Erythroleukemia cell line (AML M6 in relapse after treatment for Hodgkin's disease),"Martin et al., Science 216: 1233 (1982)",Peripheral blood,1,DSMZ,CVCL_0001,1,Cancer cell line,8
+NaN,HL-60,35,Female,Myeloid,Acute promyelocytic leukemia (APL) cell line,"Collins et al., Nature 270: 347-349 (1977)",Peripheral blood,0,DSMZ,CVCL_0002,1,Cancer cell line,8
+NaN,HMC-1,52,Male,Myeloid,Mastcell leukemia cell line,"Butterfield et al., Leukemia Res. 12: 345-355 (1988)",Peripheral blood,1,KN2,CVCL_0003,1,Cancer cell line,8
+NaN,K-562,53,Female,Myeloid,Chronic myeloid leukemia (CML) cell line,"Lozzio et al., J Natl Cancer Inst 50: 535 (1973)",Pleural effusion,0,DSMZ,CVCL_0004,1,Cancer cell line,8
+NaN,THP-1,1,Male,Myeloid,Acute monocytic leukemia (AML) cell line,"Tsuchiya et al., Int J Cancer 26: 171 (1980)",Peripheral blood,1,DSMZ,CVCL_0006,1,Cancer cell line,8
+NaN,U-937,37,Male,Myeloid,Myelomonocytic histiocytic lymphoma cell line,"Sundstrom C, Nilsson K., Int J Cancer 17:565-577 (1976)",Pleural effusion,1,KN2,CVCL_0007,1,Cancer cell line,8
+NaN,NTERA-2,22,Male,"Renal, urinary, male reproductive system","Metastatic embryonal carcinoma cell line, cloned from TERA-2","Fogh & Trempe, Human Tumor Cells in Vitro : 115 (1975)",NaN,1,DSMZ,CVCL_0034,1,Cancer cell line,9
+NaN,U-2197,79,Male,Sarcoma,Malignant fibrous histiocytoma cell line,"Genberg et al., Am J Pathol 135: 1185 (1989)",Subcutis,1,DSMZ,CVCL_0043,1,Cancer cell line,10
+NaN,WM-115,58,Female,Skin,Malignant melanoma cell line,"Westermark B. et al, Proc Natl Acad Sci U S A. Oct; 83(19): 7197 (1986)",Skin,0,BW1,CVCL_0040,1,Cancer cell line,11
+NaN,NIH 3T3,NaN,'’,Mouse,Mouse embryonal fibroblast cell line,"Aaronson et al., J Cell Physio 72(2): 141-148 (1968)",Embryo,NaN,DSMZ,CVCL_0594,3,Spontaneously immortalized cell line,12
+NaN,TIME,NaN,Male,Endothelial,Telomerase-immortalized human microvascular endothelial cells (pooled),"Venetsanakos et el., Exp Cell Res., Feb 1;273(1): 21-33 (2002)",Skin,1,LCW54,CVCL_0047,4,Telomerase immortalized cell line,4
+NaN,BJ hTERT+,NaN,Male,Fibroblast,Adherent BJ fibroblast cell line immortalized with ectopic expression of hTERT,"Bodnar et al., Science 279(5349): 349-352 (1998)",Foreskin,1,'’,CVCL_6573,4,Telomerase immortalized cell line,5
+NaN,HBF TERT88,NaN,Female,Fibroblast,Adherent brain fibroblast cell line,'’,Brain,0,Evercyte,CVCL_9Q52,4,Telomerase immortalized cell line,5
+NaN,HTCEpi,62,Male,Miscellaneous,Telomerase-immortalized corneal epithelial cell line,"Robertson et al., Invest Ophthalmol Vis Sci 46(2): 470-478 (2005)",Cornea,1,Evercyte,CVCL_AQ44,4,Telomerase immortalized cell line,13
+NaN,RPTEC TERT1,NaN,Male,"Renal, urinary, male reproductive system",Proximal tubular epithelial cell line,"Wieser et al., Am J Physiol Renal Physiol 295(5): 1365-1375 (2008)",Human kidney cortex,1,Evercyte,CVCL_K278,4,Telomerase immortalized cell line,9
+NaN,LHCN-M2,41,Male,Sarcoma,Adherent myoblast cell line,"Zhu et al., Aging Cell 6(4): 515-523 (2007)",Satellite cells (from pectoralis major muscle),1,Evercyte,CVCL_8890,4,Telomerase immortalized cell line,10
+NaN,BJ hTERT+ SV40 Large T+,NaN,Male,Fibroblast,"Adherent BJ fibroblast cell line immortalized with ectopic expression of hTERT, transformed with SV40 Large-T infection","Bodnar et al., Science 279(5349): 349-352 (1998)",Foreskin,1,'’,'’,NaN,'’,5
+NaN,BJ hTERT+ SV40 Large T+ RasG12V,NaN,Male,Fibroblast,"Adherent BJ fibroblast cell line immortalized with ectopic expression of hTERT, transformed with SV40 Large-T infection, made metastasizing with oncogenic H-Ras","Bodnar et al., Science 279(5349): 349-352 (1998)",Foreskin,1,'’,'’,NaN,'’,5

@@ -1,0 +1,88 @@
+# The Human Protein Atlas License Information
+#
+# This file contains information regarding the license
+# and restrictions for using data and images from
+# The Human Protein Atlas. Image data and metadata
+# were downloaded from v16 of The Human Protein Atlas
+# in March 2017.
+#
+# For convenience exploring Cell DECODEr, we include
+# sample images and data from The Human Protein Atlas.
+# The Human Protein Atlas authors retain all copyright.
+#
+# Copyright (c) 2017 The Human Protein Atlas
+# All rights reserved
+#
+# CC BY-NC-ND 4.0 License (see below)
+# See http://v16.proteinatlas.org/about/licence [sic]
+# ======================================================================
+
+
+# Primary reference
+Thul PJ et al, 2017. A subcellular map of the human proteome. Science.
+PubMed: 28495876 DOI: 10.1126/science.aal3321
+
+# Additional reference
+Uhlen M et al, 2010. Towards a knowledge-based Human Protein Atlas. Nat Biotechnol.
+PubMed: 21139605 DOI: 10.1038/nbt1210-1248
+
+# Image credit, where applicable: Human Protein Atlas
+
+
+######################################################################
+# Additional license information
+# Copied from https://creativecommons.org/licenses/by-nc-nd/4.0/
+#
+# Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)
+#
+#    Free to:
+#    Share — copy and redistribute the material in any medium or format
+#
+#    License restrictions (see http://v16.proteinatlas.org/about/licence):
+#    Attribution   — You must give appropriate credit, provide a link to
+#                  the license, and indicate if changes were made. You may
+                   do so in any reasonable manner, but not in any way that
+#                  suggests the licensor endorses you or your use.
+#    NonCommercial — You may not use the material for commercial purposes.
+#    NoDerivatives — If you remix, transform, or build upon the material,
+#                  you may not distribute the modified material.
+#    No additional — You may not apply legal terms or
+#    restrictions  technological measures that legally restrict others
+#                  from doing anything the license permits.
+#
+######################################################################
+# Summary from:
+# https://tldrlegal.com/license/creative-commons-attribution-noderivatives-4.0-international-(cc-by-nd-4.0)
+# 
+# Creative Commons Attribution-NoDeratives license in International
+# version 4, that allows to do what they want except modifying.
+#
+# Attribution
+# You must give credit to the original author of the work, including
+# a URI or hyperlink to the work, this Public license and a copyright notice.
+#
+# Attribution information revoke
+# 
+# Author can request to remove any attribution given information.
+# 
+# Tivoization
+# You may not apply legal terms or technological measures that legally
+# restrict others from doing anything the license permits.
+# 
+# Disclaimer of warranties
+# Disclaimer of warranties is optional.
+#
+# If separately undertaken, shared material must retain a notice to
+# Disclaimer of warranties.
+# 
+# Otherwise, Disclaimer of warranties, is taken by default, providing
+# the work as-is and as-available.
+# 
+# Liable
+# Liable follows the same rules as Disclaimer of warranties, providing,
+# by default, protection from defamation for the creator.
+# 
+# Revoke
+# The licensor cannot revoke these freedoms as long as you follow the
+# license terms.
+######################################################################
