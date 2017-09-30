@@ -43,7 +43,9 @@ def load(dataset):
     
     # Load data
     if dataset == 'hpa_cell_images':
-        mapfile = 1
+        mapfile_root = os.path.dirname('../../mapfiles/human_protein_atlas/cell_lines/')
+        mapfile_name = 'all_cells_mapfile.tsv'
+        mapfile_filepath = os.path.join()
         hv_img, df = plot.unique_images(mapfile,
                                        text_labels=text_labels,
                                        randomize=True,

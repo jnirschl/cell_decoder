@@ -36,10 +36,10 @@ try:
     imp.find_module('cntk')
     found = True
 except ImportError:
-    found = False
+    raise ImportError('Cell DECODER requires the CNTK package.\n',
+                      'Please follow the CNTK installation link',
+                      'on the home page before continuing.')
 
-#
-# Bubble to root namesapce
 #
 from . import data
 from . import extract
@@ -48,7 +48,7 @@ from . import io
 from . import models
 from . import readers
 from . import utils
-#from . import visualize
+from . import visualize
 
 #print('Running CNTK version {0:s}'.format(cntk.__version__))
 print('Running Cell DECODER version {0:s}'.format(__version__))
