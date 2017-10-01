@@ -39,6 +39,26 @@ output_file = [PATH_TO_SAVE_OUTPUT]
 cell_decoder.extract_features(deep_cell_Res50, map_file,
                               output_file)
 ```
+
+------------------
+License and Citation
+Images and data from the Human Protein Atlas are used with permission under the CC BY-NC-ND 4.0 License.
+
+The Cell DECODER toolbox is released under the [MIT License](https://opensource.org/licenses/MIT).
+
+If you use Cell DECODER for your research, please cite:
+Nirschl JJ, Moore AM, Holzbaur ELF (YYYY). Cell DECODER: A Deep Learning
+Package for Phenotypic Profiling in Biological Image Analysis.
+
+Bibtex formatted reference:
+@article{nirschl2017decoder,
+    Author={Jeffrey J Nirschl and Andrew S Moore AM and  Erika LF Holzbaur},
+    Journal={},
+    Title={Cell DECODER: A Deep Learning Package for Phenotypic Profiling in Biological Image Analysis},
+    Year{2017},
+}
+
+
 ------------------
 ## Acknowledgements
 The authors gratefully acknowledge the NVIDIA Corporation's Academic Hardware Grant of a Titan-X GPU. Jeff Nirschl was supported by NINDS F30-NS092227.
