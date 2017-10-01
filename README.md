@@ -51,12 +51,14 @@ Nirschl JJ, Moore AM, Holzbaur ELF (YYYY). Cell DECODER: A Deep Learning
 Package for Phenotypic Profiling in Biological Image Analysis.
 
 Bibtex formatted reference:
+```text
 @article{nirschl2017decoder,
     Author={Jeffrey J Nirschl and Andrew S Moore AM and  Erika LF Holzbaur},
     Journal={},
     Title={Cell DECODER: A Deep Learning Package for Phenotypic Profiling in Biological Image Analysis},
     Year{2017},
 }
+```
 
 
 ------------------
