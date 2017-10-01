@@ -280,6 +280,9 @@ def sample(mapfile=None,
     diff_idx_list = np.setdiff1d(df.index.tolist(), df_subset['orig_idx'])
     df_supset = df.ix[diff_idx_list]
 
+    # Drop column orig_idx
+    df_subset.drop(['orig_idx'], axis=1, inplace=True)
+
     return df_supset, df_subset
 
 
@@ -335,7 +338,7 @@ def summarize(df=None,
 ##
 def crossval(mapfile=None,
              df=None,
-             k_fold=5,
+             k_fold=10,
              balance_classes=False,
              held_out_test=50,
              save_root=os.getcwd(),
@@ -344,6 +347,13 @@ def crossval(mapfile=None,
     crossval
 
     '''
+    if mapfile is None:
+        assert isinstance(df, pd.DataFrame), \
+            'df must be a Pandas DataFrame!'
+    elif df is None:
+        assert (isinstance(mapfile, str) and os.path.isfile(mapfile)), \
+            'Mapfile must be a valid file!'
+        
     # TODO get seed automatically from random.org
     if random_seed is None:
         random_seed = 123456789
@@ -370,8 +380,15 @@ def crossval(mapfile=None,
                                  frac=None,
                                  grouped=True,
                                  replace=False)
+
+        # Adjust k_fold based on class number
+        df_summary = summarize(df=df)
+        if df_summary['count'].min() < k_fold:
+            min_idx = np.argmin(df_summary['count'])
+            print('Class {0:d} has too few examples ({1:d}) for {2:d} fold cross-validation! Using {0:d} fold cross-validation instead'.format(df_summary['label'].ix[min_idx],df_summary['count'].ix[min_idx], k_fold ))
+            k_fold = df_summary['count'].min()
+            
         #TODO save held out
-        df_held_out.drop(['label'], axis=1, inplace=True)
         
     else:
         df_held_out = None

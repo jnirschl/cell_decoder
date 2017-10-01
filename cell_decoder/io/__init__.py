@@ -8,9 +8,11 @@
 # Distributable under an MIT License
 # ======================================================================
 '''
-Cell DECODER IO utilities
 
-Copyright (c) 2017 Jeffrey J. Nirschl
+.. module::cell_decoder.io
+    :synopsis: Input-output utilities.
+
+
 '''
 
 # Imports
@@ -124,13 +126,14 @@ class DataStruct:
     ##
     def create_mb_source(self,
                          transform_params,
-                         k_fold=5,
                          balance=False,
                          held_out_n=100,
                          held_out_test=True,
                          is_training=True,
+                         random_seed=None,
                          reader='default',
                          savepath=os.getcwd(),
+                         k_fold=5,
                          allowed_readers=READERS):
         '''
         create_mb_source
@@ -139,13 +142,13 @@ class DataStruct:
             raise ValueError('Invalid reader {0:s}!'.format(reader))
 
         # Setup cross validation
-        mapfile_utils.crossval(self.mapfile,
-                               k_fold=k_fold,
-                               balance=balance,
-                               held_out_test=held_out_test,
-                               held_out_n=held_out_n,
-                               savepath=savepath,
-                               random_seed=random_seed)
+        df, df_held_out = mapfile_utils.crossval(self.mapfile,
+                                                 k_fold=k_fold,
+                                                 balance=balance,
+                                                 held_out_test=held_out_test,
+                                                 held_out_n=held_out_n,
+                                                 savepath=savepath,
+                                                 random_seed=random_seed)
 
         # Create minibatch source from DataStruct instance
         if reader.lower()=='default':
