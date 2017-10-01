@@ -9,6 +9,6 @@
 # MIT License
 # ======================================================================
 
-# TODO -- Update: If you use this for your research, please cite:
+If you use Cell DECODER for your research, please cite:
 Nirschl JJ, Moore AM, Holzbaur ELF (YYYY). Cell DECODEr: A Deep Learning
 Package for Phenotypic Profiling in Biological Image Analysis.
