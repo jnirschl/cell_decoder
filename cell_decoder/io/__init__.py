@@ -12,7 +12,6 @@
 .. module::cell_decoder.io
     :synopsis: Input-output utilities.
 
-
 '''
 
 # Imports
@@ -47,11 +46,11 @@ class DataStruct:
     RESNET_LAYERS = [18, 34, 50, 101, 152]
     READERS = ['default','microscopy']
 
-    # Instance attributes
+    # Initialize class instance attributes
     def __init__(self,
                  mapfile,
                  parameters=None,
-                 frac_sample=0.005):
+                 frac_sample=0.01):
         '''
         Read the mapfile and set data_struct parameters.
 
@@ -75,21 +74,21 @@ class DataStruct:
                                                             frac_sample=frac_sample)
 
         # Update instance attributes
-        self.num_classes = int(df['label'].max() + 1) # len(df['label'].unique())
+        self.num_classes = int(df['label'].max() + 1)
         self.mapfile_root = mapfile_root
         self.mapfile_name = mapfile_name
         self.epoch_size = df.shape[0]
 
     ##
-    def compute_image_mean(self,
-                           savepath=None,
-                           filename=None,
-                           data_aug=True,
-                           debug_mode=True,
-                           save_img=True,
-                           nargout=False):
+    def compute_mean(self,
+                     savepath=None,
+                     filename=None,
+                     data_aug=True,
+                     debug_mode=True,
+                     save_img=True,
+                     nargout=False):
         '''
-        compute_image_mean
+        compute_mean
         '''
         # Set savepath
         if savepath is None:
@@ -109,7 +108,7 @@ class DataStruct:
 
         # Store path to mean image xml, png
         self.image_mean_filepath = os.path.join(savepath,
-                                                os.path.splitext(filename)[0]+'.xml')
+                                                filename.replace('.png','.xml'))
 
         # Store mean pixel values (BGR)
         self.pixel_mean = np.mean(np.mean(image_mean, axis=0), axis=0)
@@ -124,29 +123,44 @@ class DataStruct:
             return image_mean
 
     ##
-    def create_mb_source(self,
-                         transform_params,
-                         held_out_n=100,
-                         held_out_test=True,
-                         is_training=True,
-                         random_seed=None,
-                         reader='default',
-                         savepath=os.getcwd(),
-                         k_fold=5,
-                         allowed_readers=READERS):
+    def partition(self,
+                  k_fold=5,
+                  savepath='',
+                  held_out_frac=0.1,
+                  held_out_n=100,
+                  random_state=1):
         '''
-        create_mb_source
-        '''
-        if reader not in allowed_readers:
-            raise ValueError('Invalid reader {0:s}!'.format(reader))
+        partition
 
+        '''
         # Setup cross validation
         df, df_held_out = mapfile_utils.crossval(self.mapfile,
                                                  k_fold=k_fold,
                                                  held_out_test=held_out_test,
                                                  held_out_n=held_out_n,
                                                  savepath=savepath,
-                                                 random_seed=random_seed)
+                                                 random_seed=random_state)
+
+        # Set
+
+        return
+        
+    ##
+    def create_reader(self,
+                      transform_params,
+                      held_out_n=100,
+                      held_out_test=True,
+                      is_training=True,
+                      random_seed=None,
+                      reader='default',
+                      savepath=os.getcwd(),
+                      k_fold=5,
+                      allowed_readers=READERS):
+        '''
+        create_reader
+        '''
+        if reader not in allowed_readers:
+            raise ValueError('Invalid reader {0:s}!'.format(reader))
 
         # Create minibatch source from DataStruct instance
         if reader.lower()=='default':

@@ -8,7 +8,9 @@
 # Distributable under an MIT License
 # ======================================================================
 '''
-Cell DECODER mapfile utilities
+
+.. module:cell_decoder.io.mapfile_utils
+    :synopsis: Utilities for reading and editing mapfile.
 
 '''
 
@@ -28,7 +30,8 @@ import cell_decoder as c_decoder
 # Third-party imports
 from sklearn.model_selection import StratifiedKFold
 
-#
+
+# Set root dir
 root_dir = os.path.join(os.path.dirname(c_decoder.__file__),'mapfiles')
 
 ## Read a mapfile and check whether a subset of images exist
@@ -89,7 +92,8 @@ def read(mapfile,
         # Find the missing classes
         missing_labels =  np.setxor1d(unique_labels,
                                       np.arange(0,unique_labels.max()+1))
-        print('One or more classes have no examples:\t{0:s}'.format(np.array2string(missing_labels)))
+        print_text = 'One or more classes have no examples:\t{0:s}'
+        print(print_text.format(np.array2string(missing_labels)))
 
     return df, mapfile_root, mapfile_name
 
@@ -191,6 +195,7 @@ def append(mapfile):
     '''
     append
     '''
+    #TODO finish function
     mapfile = 1
 
     return df
@@ -296,25 +301,6 @@ def sample(mapfile=None,
 
     return df_supset, df_subset
 
-
-##
-def balance_classes(mapfile):
-    '''balance_classes
-
-
-    '''
-    # Summarize the class count in the mapfile
-    df_grouped, _ = summarize(mapfile)
-
-    # Find the minimum count in a single class
-    min_n_samples = min(df_grouped['label'].count())
-
-    # Sample min_class n samples from each group
-    _, df_subset = sample(mapfile, n_sample=min_n_samples,
-                          grouped=True, replace=False)
-
-    return df_subset
-
 ##
 def summarize(df=None,
               mapfile=None,
@@ -414,8 +400,9 @@ def crossval(mapfile=None,
                           shuffle=True,
                           random_state=random_seed)
 
-    # Pre-allocate validation idx array
+    # Pre-allocate array and dict
     all_test_idx = np.empty((df['label'].shape[0],1), dtype=int)
+    mapfile_list = {}
 
     # Verbose output
     if save:
@@ -443,6 +430,7 @@ def crossval(mapfile=None,
     # Save train and held-out
     if save:
         df.to_csv(save_filepath.replace('train','all_train-val'), sep='\t')
+        
         if df_held_out is not None:
             df.to_csv(save_filepath.replace('train','held-out-test'), sep='\t')
 

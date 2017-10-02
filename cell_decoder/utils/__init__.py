@@ -8,9 +8,10 @@
 # Distributable under an MIT License
 # ======================================================================
 '''
-Cell DECODER general utilities
 
-Copyright (c) 2017 Jeffrey J. Nirschl
+.. module:cell_decoder.utils
+    :synopsis: General utilities
+
 '''
 
 # Imports
@@ -19,15 +20,17 @@ import glob
 import re
 import numpy as np
 
-
 ##    
-def string_cmp(str1, str2, match_case=False):
-    ''' Compare two strings and return a BOOL array
+def string_cmp(str1,
+               str2,
+               match_case=False):
+    '''
+    string_cmp(str1, str2, match_case=False)
+    
+    Compare two strings (str) and return a BOOL array
     with the indices where str1 matches str2.
 
     Default is not case sensitive (match_case=False).
-    
-    Accepts X and returns y.
     '''
     assert isinstance(str1, str), "Str1 must be a string!"
     assert isinstance(str2, str), "Str2 must be a string!"
@@ -40,6 +43,3 @@ def string_cmp(str1, str2, match_case=False):
         diff_idx = [idx for idx, elem in enumerate(str2) if elem.lower() not in str1.lower()]
     
     return match_idx, diff_idx
-
-##
-

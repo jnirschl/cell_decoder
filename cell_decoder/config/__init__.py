@@ -8,9 +8,10 @@
 # Distributable under an MIT License
 # ======================================================================
 '''
-Cell DECODER config utilities
 
-Copyright (c) 2017 Jeffrey J. Nirschl
+.. module:cell_decoder.config
+    :synopsis: Configuration utilities and parameter classes.
+
 '''
 
 # Imports

@@ -8,9 +8,10 @@
 # Distributable under an MIT License
 # ======================================================================
 '''
-Cell DECODER models
 
-Copyright (c) 2017 Jeffrey J. Nirschl
+.. module:cell_decoder.models
+    :synopsis: Utilities for creating, training, and testing models.
+
 '''
 
 __all__ = ['AlexNet',
@@ -29,8 +30,8 @@ import copy
 
 import numpy as np
 import pandas as pd
-import pickle
-from scipy.stats import kstest
+#import pickle
+#from scipy.stats import kstest
 
 # Main CNTK imports
 import cntk as C
@@ -48,7 +49,6 @@ from cntk.logging import log_number_of_parameters, ProgressPrinter
 from cntk.logging.graph import find_by_name, get_node_outputs
 from cntk.logging.progress_print import TensorBoardProgressWriter
 from cntk.losses import cross_entropy_with_softmax
-
 
 
 ##
