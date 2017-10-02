@@ -29,25 +29,26 @@ class DataStructParameters():
     A DataStructParameters class for storing data and model information.
     '''
     def __init__(self,
-                 mapfile=None,
-                 train_map=None,
-                 test_map=None,
-                 valid_map=None,
-                 text_labels=None,
-                 image_mean_filepath=None,
-                 pixel_mean=25,
-                 num_channels=3,
+                 debug_mode=True,
                  image_height=224,
+                 image_mean_filepath=None,
                  image_width=224,
+                 mapfile=None,
+                 microns_per_pixel=0.25,
+                 model_dict=None,
+                 model_save_root=None,
+                 num_channels=3,
+                 pixel_mean=25,
+                 profiler_dir=None,
+                 random_seed=123456789,
                  scaling_factor=0.00390625,
                  tb_freq=10,
                  tb_log_dir='C:/TensorBoard_logs/cntk',
-                 profiler_dir=None,
-                 debug_mode=True,
+                 test_map=None,
+                 text_labels=None,
+                 train_map=None,
                  use_mean_image=False,
-                 microns_per_pixel=0.25,
-                 model_dict=None,
-                 model_save_root=None):
+                 valid_map=None):
         # Either input one mapfile to convert into train/ test/
         # valid or each separately
         if mapfile:
@@ -82,6 +83,10 @@ class DataStructParameters():
         self.model_dict = model_dict # Stores input_var, label_var, and net
         self.model_save_root = model_save_root
 
+        # Set random state
+        # TODO get seed automatically from random.org
+        self.random_seed = random_seed
+        self.random_state = np.random.RandomState(random_seed)
 
 ## Learning parameter class
 class LearningParameters():

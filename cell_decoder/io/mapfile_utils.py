@@ -365,14 +365,6 @@ def crossval(mapfile=None,
         assert (isinstance(mapfile, str) and os.path.isfile(mapfile)), \
             'Mapfile must be a valid file!'
 
-    # TODO get seed automatically from random.org
-    if random_seed is None:
-        random_seed = 123456789
-        print('Using a fixed random seed of {0:d}'.format(random_seed))
-
-    # Set random seed for reproducibility
-    np.random.seed(random_seed)
-
     # Read mapfile or get df
     if df is None:
         df, mapfile_root, _ = read(mapfile)
