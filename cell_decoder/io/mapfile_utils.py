@@ -32,13 +32,14 @@ from sklearn.model_selection import StratifiedKFold
 
 
 # Set root dir
-root_dir = os.path.join(os.path.dirname(c_decoder.__file__),'mapfiles')
+root_dir = os.path.join(os.path.dirname(c_decoder.__file__), 'mapfiles')
 
 ## Read a mapfile and check whether a subset of images exist
 def read(mapfile,
          frac_sample=None,
          text_labels=None):
-    '''df, mapfile_root, mapfile_name = read(mapfile)
+    '''
+    df, mapfile_root, mapfile_name = read(mapfile)
 
     Accepts a STR with the full path to a mapfile
     and returns a Pandas DataFrame, the mapfile directory,
@@ -99,13 +100,15 @@ def read(mapfile,
 
 
 ##
-def save(df,
+def save(mapfile=None,
+         df=None,
          save_filename,
-         savepath='../mapfiles/',
-         sep='t',
+         savepath=root_dir,
+         sep='\t',
          header=False,
          index=False):
-    '''save
+    '''
+    save()
 
     '''
     assert os.path.isdir(savepath), 'Invalid save path!'.format(savepath)
@@ -139,10 +142,11 @@ def save(df,
 def create(input_dir,
            label_map,
            filter_spec='png',
-           savepath='../mapfiles/',
+           savepath=root_dir,
            save_filename='test.tsv'):
     '''
     create()
+
     '''
     # Check for errors in input_dir
     if not os.path.isdir(input_dir):
@@ -177,7 +181,7 @@ def prepend_filepath(mapfile,
                      overwrite=True,
                      prefix=None):
     '''
-    prepend_filepath(mapfile, prefix=[PATH])
+    df, mapfile = prepend_filepath(mapfile, overwrite=True, prefix=[PATH])
 
     Accepts a STR with the full path to a mapfile
     and prepends each filepath of the mapfile with
@@ -204,7 +208,8 @@ def prepend_filepath(mapfile,
 ##
 def append(mapfile):
     '''
-    append
+    append()
+
     '''
     #TODO finish function
     mapfile = 1
@@ -216,9 +221,11 @@ def check_images(df=None,
                  mapfile=None,
                  n_sample=None,
                  frac_sample=0.01):
-    '''check_images
+    '''
+    check_images(mapfile=mapfile, frac_sample=0.01)
 
-    Accepts X and returns Y.
+    Accepts a Pandas DataFrame or a mapfile and checks
+    whether a subset of files in ['filepath'] exist.
     '''
     assert (isinstance(df, pd.DataFrame) \
             or mapfile is not None), \
@@ -226,11 +233,11 @@ def check_images(df=None,
     assert (frac_sample > 0 and frac_sample <1), \
         ValueError('Sampling fraction must be in the range ({0:0.2f},{1:0.2f})!'.format(0,1))
 
+    # Read mapfile
     if isinstance(df, pd.DataFrame) is None:
-        # Read mapfile
         df, _, _ = read(mapfile)
 
-    # Sample a random subset of dataframe
+    # Sample a random subset of dataframe, either by n or fraction
     if isinstance(n_sample, str) and n_sample.lower()=='all':
         n_sample = df.shape[0]
 
@@ -244,7 +251,9 @@ def check_images(df=None,
         df_out = df.sample(frac=frac_sample/10, replace=False)
 
     # Check whether images exist
-    print('Checking a random {0:0.2f}% of mapfile to ensure files exist.\n'.format(frac_sample*100))
+    print_text = 'Checking a random {0:0.2f}% of mapfile to ensure files exist.\n'
+    print(print_text.format(frac_sample*100))
+    
     for elem in df_out.values:
         assert os.path.isfile(elem[0]), \
             'Image does not exist!\n\t{0:s}'.format(os.path.basename(elem[0]))
@@ -261,20 +270,23 @@ def sample(mapfile=None,
            frac=None,
            grouped=True,
            replace=False):
-    '''sample
+    '''
+    df_supset, df_subset = sample(mapfile=mapfile, n_sample=1)
 
-    Accepts X and returns Y.
+    Accepts a Pandas DataFrame or filepath to a mapfile and samples
+    N elements or a fraction N of elements by group ['label'].
+
+    Returns df_superset (df original less sampling) and df_subset.
     '''
     assert (isinstance(df, pd.DataFrame) or mapfile is not None), \
-        ValueError('A Pandas Dataframe or valid filepath to a mapfile are required!')
+        ValueError('A Pandas Dataframe or mapfile are required!')
 
-    #
+    # Read mapfile
     if not isinstance(df, pd.DataFrame):
-        # Read mapfile - error checking in "read"
         df, mapfile_root, mapfile_name = read(mapfile,
                                               frac_sample=None)
 
-    # Sample the df
+    # Sample the df, group if necessary
     if grouped:
         # Group by label
         df_grouped = df.groupby('label')
@@ -316,9 +328,11 @@ def sample(mapfile=None,
 def summarize(df=None,
               mapfile=None,
               group_label='label'):
-    '''summarize
+    '''
+    summarize()
 
-    Accepts X and returns Y.
+    Accepts a Pandas DataFrame or filepath to a mapfile and summarizes
+    the count and percentage of each class in the dataset.
     '''
     assert (isinstance(df, pd.DataFrame) or mapfile is not None), \
         'A Pandas Dataframe or valid filepath to a mapfile are required!'
@@ -352,8 +366,14 @@ def crossval(mapfile=None,
              save=True,
              random_seed=None):
     '''
-    crossval
+    df_train, df_held_out = crossval()
 
+    Accepts a Pandas DataFrame or filepath to a mapfile and
+    partitions the dataset into training, with cross validation,
+    and a held-out dataset. Mapfiles are saved to the mapfile
+    directory.
+
+    Returns a df_train (training + cross-validation) and df_held_out.
     '''
     if mapfile is None:
         assert isinstance(df, pd.DataFrame), \
@@ -361,6 +381,8 @@ def crossval(mapfile=None,
     elif df is None:
         assert (isinstance(mapfile, str) and os.path.isfile(mapfile)), \
             'Mapfile must be a valid file!'
+    else:
+        raise ValueError('A valid mapfile or Pandas dataframe is required!')
 
     # Read mapfile or get df
     if df is None:
@@ -418,8 +440,8 @@ def crossval(mapfile=None,
     # Verbose output
     if save:
         print('Saving files to\n\t{0:s}'.format(save_root))
-    
-    # 
+
+    #
     for fold, [train_idx, test_idx] in enumerate(skf.split(df['filepath'],
                                                         df['label'])):
         # Save train and test filepaths and labels in a csv
@@ -441,7 +463,7 @@ def crossval(mapfile=None,
     # Save train and held-out
     if save:
         df.to_csv(save_filepath.replace('train','all_train-val'), sep='\t')
-        
+
         if df_held_out is not None:
             df.to_csv(save_filepath.replace('train','held-out-test'), sep='\t')
 
