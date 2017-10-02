@@ -65,7 +65,8 @@ def create(model_parameters,
     '''
     models.create()
 
-    Returns a dictionary "model_dict" with the keys input_var, label_var, and net.
+    Returns a dictionary "model_dict" with the keys:
+        input_var, label_var, net, and num_classes
     '''
     # Get ModelParameters
     if model_parameters:
@@ -150,7 +151,7 @@ def create(model_parameters,
     return model_dict
 
 ##
-def train(model_dict, # input_var', 'label_var', 'net]'
+def train(model_dict,
           reader_train,
           train_epoch_size,
           learn_params,
@@ -166,7 +167,8 @@ def train(model_dict, # input_var', 'label_var', 'net]'
           extra_aug=True):
     '''models.train()
 
-    Returns the trained network and a history of the training accuracy/ loss and test accuracy.
+    Returns the trained network and a history of the
+    training accuracy/ loss and test accuracy.
     '''
     # Error check
     valid_model_dict = ['input_var', 'label_var',
@@ -370,16 +372,16 @@ def print(trained_model):
         print("  {0} {1}".format(layer.name, layer.shape))
     
 ##
-def test(net, # model_dict
-         mapfile,
-         df=None,
-         output_filepath=None,
-         reader=None,
-         max_images=-1,
-         model_suffix='',
-         update_freq=50):
+def evaluate(net, # model_dict
+             mapfile,
+             df=None,
+             output_filepath=None,
+             reader=None,
+             max_images=-1,
+             model_suffix='',
+             update_freq=50):
     '''
-    models.test
+    models.evaluate(net, mapfile)
 
     Returns a Padas df and test accuracy
     '''

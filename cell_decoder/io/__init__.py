@@ -18,6 +18,7 @@
 import os
 import copy
 import numpy as np
+import pandas as pd
 
 #
 import cv2
@@ -88,7 +89,13 @@ class DataStruct:
                      save_img=True,
                      nargout=False):
         '''
-        compute_mean
+        DataStruct.compute_mean()
+        
+        Computes the mean image and RGB pixel values
+        for a given mapfile and saves a PNG and OpenCV
+        XML file of the mean image.
+
+        Optional: Returns the mean image as an RGB numpy array.     
         '''
         # Set savepath
         if savepath is None:
@@ -130,7 +137,11 @@ class DataStruct:
                   held_out_n=100,
                   random_state=1):
         '''
-        partition
+        DataStruct.partition()
+
+        Partitions a mapfile into a training and held-out test
+        data set. Splits the training data set into k-fold for 
+        cross-validation.
 
         '''
         # Setup cross validation
@@ -143,7 +154,7 @@ class DataStruct:
 
         # Set
 
-        return
+        return df
         
     ##
     def create_reader(self,
@@ -157,7 +168,10 @@ class DataStruct:
                       k_fold=5,
                       allowed_readers=READERS):
         '''
-        create_reader
+        DataStruct.create_reader(TransformParams)
+        
+        Creates CNTK Minibatch Source readers for training
+        and testing mapfiles.
         '''
         if reader not in allowed_readers:
             raise ValueError('Invalid reader {0:s}!'.format(reader))
@@ -183,9 +197,10 @@ class DataStruct:
                      model_parameters=None,
                      allowed_layers=RESNET_LAYERS):
         '''
-        create_model
+        DataStruct.create_model()
 
-        Returns a dictionary "model_dict" with the keys input_var, label_var, and net.
+        Returns a dictionary "model_dict" with the keys:
+            input_var, label_var, net, and num_classes.
         '''
         #TODO
         #        if self.resnet_layers not in allowed_layers:
@@ -222,7 +237,10 @@ class DataStruct:
     ##
     def train_model(self):
         '''
-        data_struct.train_model
+        DataStruct.train_model()
+        
+        Returns the trained network and a history of the
+        training accuracy/ loss and validation accuracy.
         '''
         # Error check
         if self.model_dict is None:
@@ -266,8 +284,9 @@ class DataStruct:
     ##
     def extract_features(self):
         '''
-        extract_features
+        DataStruct.extract_features()
 
+        Returns 
         '''
         df = 1
         #TODO return a df with filenames, labels, and features
@@ -277,13 +296,26 @@ class DataStruct:
 
 
     ##
+    def evaluate_model(self):
+        '''
+        DataStruct.evaluate_model()
+
+        Returns a Padas df with performance evaluation on the
+        held-out test set.
+        '''
+
+        return 1
+
+    ##
     def plot_features(self,
                       df=None,
                       backend='plotly'):
         '''
-        plot_features
+        DataStruct.plot_features()
 
-        Return a Holoviews element to visualize the phenotypic profiling.
+        Return a plotting object to visualize the phenotypic
+        profiling results using holoviews or Plotly as a backend.
+        
         '''
         # Load sample dataset for debugging
         if self.debug_mode:
@@ -315,10 +347,10 @@ class DataStruct:
     ##
     def plot_unique(self, max_size=224):
         '''
-        plot_unique
+        DataStruct.plot_unique()
 
-        Return a Holoviews RGB element containing one random unique image
-        per class.
+        Return a Holoviews RGB element containing one
+        random unique image per class.
         '''
         hv_img, _ = plot.unique_images(self.mapfile,
                                        text_labels=self.text_labels,
@@ -331,7 +363,7 @@ class DataStruct:
     ##
     def save(self, savepath):
         '''
-        save
+        DataStruct.save()
 
         Saves the DataStruct instance to the specified filepath.
         '''
