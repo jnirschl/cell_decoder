@@ -141,7 +141,8 @@ def create(input_dir,
            filter_spec='png',
            savepath='../mapfiles/',
            save_filename='test.tsv'):
-    '''create()
+    '''
+    create()
     '''
     # Check for errors in input_dir
     if not os.path.isdir(input_dir):
@@ -172,23 +173,33 @@ def create(input_dir,
     return df
 
 ##
-def prepend_mapfile_filepath(mapfile,
-                             prefix=None):
-    '''prepend_mapfile_filepath(mapfile, prefix=[PATH])
+def prepend_filepath(mapfile,
+                     overwrite=True,
+                     prefix=None):
+    '''
+    prepend_filepath(mapfile, prefix=[PATH])
 
     Accepts a STR with the full path to a mapfile
     and prepends each filepath of the mapfile with
     the specified prefix
     '''
-    # Read mapfile
-    df, mapfile_root, mapfile_name = read(mapfile)
+    if isinstance(prefix, str):
+        # Read mapfile
+        df, mapfile_root, mapfile_name = read(mapfile)
 
-    # Prepend filepath with given prefix
-    #    filepaths = df.ix[:,0].values
-    #    labels = df.ix[:,1].values
-    # Save  mapfile
+        # Save file_ext
+        file_ext = os.path.splitext(mapfile_name)[1]
 
-    return mapfile
+        # Prepend filepath
+        df['filepath'] = prefix + df['filepath'].astype(str)
+
+        if overwrite:
+            if file_ext =='.tsv':
+                df.to_csv(mapfile, sep='\t', header=None, index=False)
+            elif file_ext =='.csv':
+                df.to_csv(mapfile, sep=',', header=None, index=False)
+
+    return df, mapfile
 
 ##
 def append(mapfile):
