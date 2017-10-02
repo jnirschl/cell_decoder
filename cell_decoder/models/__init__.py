@@ -331,7 +331,7 @@ def train(model_dict,
 ##
 def clone():
     '''
-    models.clone
+    models.clone()
 
     Returns a cloned network.
     '''
@@ -343,7 +343,7 @@ def clone():
 ##
 def load():
     '''
-    models.load
+    models.load()
 
     Returns a pre-trained network from the model zoo.
     '''
@@ -383,7 +383,7 @@ def evaluate(net, # model_dict
     '''
     models.evaluate(net, mapfile)
 
-    Returns a Padas df and test accuracy
+    Returns a Padas df and test accuracy.
     '''
     # Load mapfile into df
     if df:
