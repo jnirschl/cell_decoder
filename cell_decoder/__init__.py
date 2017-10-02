@@ -51,7 +51,7 @@ from . import utils
 from . import visualize
 
 #print('Running CNTK version {0:s}'.format(cntk.__version__))
-print('Running Cell DECODER version {0:s}'.format(__version__))
+#print('Running Cell DECODER version {0:s}'.format(__version__))
 
 ##
 def __human_protein_atlas_license__():

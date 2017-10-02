@@ -22,8 +22,14 @@ import time
 import numpy as np
 import pandas as pd
 
+# cell_decoder imports
+import cell_decoder as c_decoder
+
 # Third-party imports
 from sklearn.model_selection import StratifiedKFold
+
+#
+root_dir = os.path.join(os.path.dirname(c_decoder.__file__),'mapfiles')
 
 ## Read a mapfile and check whether a subset of images exist
 def read(mapfile,
@@ -345,7 +351,8 @@ def crossval(mapfile=None,
              df=None,
              k_fold=10,
              held_out_test=50,
-             save_root=os.getcwd(),
+             save_root=root_dir,
+             save=True,
              random_seed=None):
     '''
     crossval
@@ -410,30 +417,42 @@ def crossval(mapfile=None,
         df_held_out = None
 
     # Setup stratified k fold (SKF) cross validation.
-    # SKF will maintain the class proportion across
-    # all folds (train/ test).
     #TODO update for recent scipy skf
     skf = StratifiedKFold(n_splits=k_fold,
                           shuffle=True,
                           random_state=random_seed)
 
-    all_test_idx = np.zeros((df['label'].shape[0],1), dtype=int)
-    for fold, [tr_idx, test_idx] in enumerate(skf.split(df['filepath'],
+    # Pre-allocate validation idx array
+    all_test_idx = np.empty((df['label'].shape[0],1), dtype=int)
+
+    # Verbose output
+    if save:
+        print('Saving files to\n\t{0:s}'.format(save_root))
+    
+    # 
+    for fold, [train_idx, test_idx] in enumerate(skf.split(df['filepath'],
                                                         df['label'])):
         # Save train and test filepaths and labels in a csv
-        save_filepath = os.path.normpath(os.path.join(save_root,
-                                                      '{0:d}_all-cells_train_filepath_labels.tsv'.format(fold)))
+        save_filename = '{0:d}_all-cells_train_mapfile.tsv'
+        save_filepath = os.path.join(save_root,
+                                     save_filename.format(fold))
 
-        # Save test index, all other examples used in training
+        # Assign test index, all other examples used in training
         all_test_idx[test_idx] = fold
 
-    # Merge test idx with original df
-    df = df.join(pd.DataFrame(all_test_idx, columns={'test_fold'}))
+        # Save train/ test folds as individual files
+        if save:
+            df.ix[train_idx].to_csv(save_filepath)
+            df.ix[test_idx].to_csv(save_filepath.replace('train','validation'))
 
-    # Save
-#    if df_held_out
-        #save_mapfile(df.ix[tr_idx], save_filepath.replace)
-        #save_mapfile(df.ix[test_idx], save_filepath.replace('train','test'))
+    # Merge test idx with original df
+    df = df.join(pd.DataFrame(all_test_idx, columns={'validation_fold'}))
+
+    # Save train and held-out
+    if save:
+        df.to_csv(save_filepath.replace('train','all_train-val'), sep='\t')
+        if df_held_out is not None:
+            df.to_csv(save_filepath.replace('train','held-out-test'), sep='\t')
 
     return df, df_held_out
 

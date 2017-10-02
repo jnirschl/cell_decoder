@@ -1,9 +1,15 @@
+# Adapted from github/Python.gitignore
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 
-# C extensions
+# Compiled source
 *.so
+*.exe
+*.dll
+*.class
+*.com
 
 # Distribution / packaging
 bin/
@@ -48,3 +54,6 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+# Emacs temp files
+*#
