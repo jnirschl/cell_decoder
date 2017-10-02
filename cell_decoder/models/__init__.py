@@ -45,8 +45,10 @@ from cell_decoder.io import mapfile_utils
 from cell_decoder.models import resnet_deep, resnet_shallow
 from cell_decoder.readers import default_reader, microscopy_reader
 from cntk.logging import log_number_of_parameters, ProgressPrinter
+from cntk.logging.graph import find_by_name, get_node_outputs
 from cntk.logging.progress_print import TensorBoardProgressWriter
 from cntk.losses import cross_entropy_with_softmax
+
 
 
 ##
@@ -341,10 +343,32 @@ def load():
     '''
     models.load
 
-    Returns a trained network
+    Returns a pre-trained network from the model zoo.
     '''
 
+##
+def print(trained_model):
+    '''
+    models.print()
 
+    Prints the cntk model structure for a given model or filepath to model.
+    '''
+    # Load model if filepath
+    if isinstance(trained_model, str):
+        assert os.path.isfile(trained_model), \
+            'Invalid filepath to trained model!'
+        trained_model = load_model(trained_model)
+    else:
+        #TODO assert trained_model
+        1
+        
+    # Get node outputs
+    node_outputs = get_node_outputs(trained_model)
+
+    # Print
+    for layer in node_outputs:
+        print("  {0} {1}".format(layer.name, layer.shape))
+    
 ##
 def test(net, # model_dict
          mapfile,
@@ -473,7 +497,6 @@ def test(net, # model_dict
     else:
          print("Processed {0} samples ({1:.2%} correct)".format(sample_count,accuracy))
 
-
     # create dataframe with compiled_results
     compiled_results = {
         'Y_hat':pred_output,
@@ -486,3 +509,34 @@ def test(net, # model_dict
     df.to_csv(output_filepath)
 
     return df, accuracy
+
+##
+def find_recent(model_directory,
+                filter_spec='*.dnn*'):
+    '''
+    models.find_recent(model_save_dir, filter_spec="*.dnn")
+
+    Accepts the filepath to a model directory (str) and returns
+    the filepath (str) for the most recent model in that directory.
+    '''
+    assert os.path.isdir(model_save_dir), \
+        ('Model must be a valid directory!')
+    
+    saved_models = glob.glob(os.path.normpath(os.path.join(model_save_dir,
+                                                           filter_spec))) 
+    saved_models = [os.path.basename(elem) for elem in saved_models]
+    model_num = []
+    for elem in saved_models:
+        model_num.append(int(re.split('_', elem)[-1].split(".")[0]))
+        
+    full_path = os.path.normpath(os.path.join(model_save_dir,
+                                              saved_models[np.argmax(model_num)]))
+    model_path = os.path.split(full_path)[0]
+    model_name = os.path.split(full_path)[1]
+    
+    if os.path.isfile(os.path.join(model_path, model_name)):
+        print("Found model {}".format(model_name))
+    else:
+        print("No models found in directory:\n{}".format(model_save_dir))
+        
+    return model_path, model_name

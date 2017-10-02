@@ -19,22 +19,6 @@ import glob
 import re
 import numpy as np
 
-from cntk.logging.graph import find_by_name, get_node_outputs
-
-##
-def print_model(trained_model):
-    '''
-    utils.print_model(trained_model)
-    '''
-    # TODO assert model class
-    
-    # Get node outputs
-    node_outputs = get_node_outputs(trained_model)
-
-    # Print
-    for l in node_outputs:
-        print("  {0} {1}".format(l.name, l.shape))
-
 
 ##    
 def string_cmp(str1, str2, match_case=False):
@@ -44,7 +28,6 @@ def string_cmp(str1, str2, match_case=False):
     Default is not case sensitive (match_case=False).
     
     Accepts X and returns y.
-    Copyright (c) 2017 Jeffrey J. Nirschl
     '''
     assert isinstance(str1, str), "Str1 must be a string!"
     assert isinstance(str2, str), "Str2 must be a string!"
@@ -59,28 +42,4 @@ def string_cmp(str1, str2, match_case=False):
     return match_idx, diff_idx
 
 ##
-def recent(model_save_dir, filter_spec='*.dnn*'):
-    '''find_recent_model(model_save_dir, load_model=True)
 
-    Accepts a directory (str) and returns a filepath (str).
-    '''
-    assert os.path.isdir(model_save_dir), \
-        ('Model must be a valid directory!')
-    
-    saved_models = glob.glob(os.path.normpath(os.path.join(model_save_dir, filter_spec))) 
-    saved_models = [os.path.basename(elem) for elem in saved_models]
-    model_num = []
-    for elem in saved_models:
-#        print(elem)
-        model_num.append(int(re.split('_', elem)[-1].split(".")[0]))
-        
-    full_path = os.path.normpath(os.path.join(model_save_dir, saved_models[np.argmax(model_num)]))
-    model_path = os.path.split(full_path)[0]
-    model_name = os.path.split(full_path)[1]
-    
-    if os.path.isfile(os.path.join(model_path, model_name)):
-        print("Found model {}".format(model_name))
-    else:
-        print("No models found in directory:\n{}".format(model_save_dir))
-        
-    return model_path, model_name
