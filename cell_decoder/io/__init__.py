@@ -126,7 +126,6 @@ class DataStruct:
     ##
     def create_mb_source(self,
                          transform_params,
-                         balance=False,
                          held_out_n=100,
                          held_out_test=True,
                          is_training=True,
@@ -144,7 +143,6 @@ class DataStruct:
         # Setup cross validation
         df, df_held_out = mapfile_utils.crossval(self.mapfile,
                                                  k_fold=k_fold,
-                                                 balance=balance,
                                                  held_out_test=held_out_test,
                                                  held_out_n=held_out_n,
                                                  savepath=savepath,

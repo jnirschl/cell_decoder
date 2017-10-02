@@ -236,7 +236,7 @@ def check_images(df=None,
 def sample(mapfile=None,
            df=None,
            n_sample=1,
-           frac=0.1,
+           frac=None,
            grouped=True,
            replace=False):
     '''sample
@@ -246,7 +246,7 @@ def sample(mapfile=None,
     assert (isinstance(df, pd.DataFrame) or mapfile is not None), \
         ValueError('A Pandas Dataframe or valid filepath to a mapfile are required!')
 
-    # 
+    #
     if not isinstance(df, pd.DataFrame):
         # Read mapfile - error checking in "read"
         df, mapfile_root, mapfile_name = read(mapfile,
@@ -257,25 +257,30 @@ def sample(mapfile=None,
         # Group by label
         df_grouped = df.groupby('label')
 
-        # Sample n per group
-        fn = lambda obj: obj.sample(n=np.min((n_sample, obj.shape[0])),
-                                    replace=replace)
+        # Sample n or fraction from the whole dataset
+        if frac:
+            fn = lambda obj: obj.sample(frac=frac, replace=replace)
+        else:
+            fn = lambda obj: obj.sample(n=np.min((n_sample, obj.shape[0])),
+                                        replace=replace)
+
         df_subset = df_grouped.apply(fn)
 
     else:
         # Sample n or fraction from the whole dataset
-        if np.greater(n_sample,1):
-            # Get a random user-specified number from the dataframe
-            df_subset = df.sample(n=n_sample, replace=replace)
-        else:
+        if frac: #np.greater(n_sample,1):
             # Get a random 10% of the dataframe
             df_subset = df.sample(frac=frac, replace=replace)
+        else:
+            # Get a random user-specified number from the dataframe
+            df_subset = df.sample(n=n_sample, replace=replace)
+
 
     # Drop original label column, so we can use reset_index
     df_subset.drop(['label'], axis=1, inplace=True)
     df_subset = df_subset.reset_index()
     df_subset = df_subset.rename(columns={'level_1':'orig_idx'})
-    
+
     # Get the indices for the dataframe less the subset
     diff_idx_list = np.setdiff1d(df.index.tolist(), df_subset['orig_idx'])
     df_supset = df.ix[diff_idx_list]
@@ -290,7 +295,7 @@ def sample(mapfile=None,
 def balance_classes(mapfile):
     '''balance_classes
 
-    
+
     '''
     # Summarize the class count in the mapfile
     df_grouped, _ = summarize(mapfile)
@@ -339,7 +344,6 @@ def summarize(df=None,
 def crossval(mapfile=None,
              df=None,
              k_fold=10,
-             balance_classes=False,
              held_out_test=50,
              save_root=os.getcwd(),
              random_seed=None):
@@ -353,7 +357,7 @@ def crossval(mapfile=None,
     elif df is None:
         assert (isinstance(mapfile, str) and os.path.isfile(mapfile)), \
             'Mapfile must be a valid file!'
-        
+
     # TODO get seed automatically from random.org
     if random_seed is None:
         random_seed = 123456789
@@ -379,11 +383,11 @@ def crossval(mapfile=None,
     elif held_out_test > 0:
         # Set aside a fixed number of each class as a held-out test
         df_summary = summarize(df=df)
-        
+
         # Adjust held-out sampling, given min class size
         if df_summary['count'].min() <= held_out_test:
             held_out_test = np.floor(df_summary['count'].min()/2).astype(int)
-        
+
         df, df_held_out = sample(df=df,
                                  n_sample=held_out_test,
                                  frac=None,
@@ -395,13 +399,13 @@ def crossval(mapfile=None,
         if df_summary['count'].min() < k_fold:
             min_idx = np.argmin(df_summary['count'])
             print_text = 'Class {0:d} has too few examples ({1:d})' + \
-                         'for {2:d} fold cross-validation! Using {1:d}' +\
-                         ' fold cross-validation instead'
+                         'for {2:d} fold cross-validation!\nUsing {1:d}' +\
+                         ' fold cross-validation instead!'
             print(print_text.format(df_summary['label'].ix[min_idx],
                                     df_summary['count'].ix[min_idx],
                                     k_fold))
             k_fold = df_summary['count'].min()
-        
+
     else:
         df_held_out = None
 
