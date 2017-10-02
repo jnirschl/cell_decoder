@@ -368,13 +368,22 @@ def crossval(mapfile=None,
         save_root = mapfile_root
 
     # Separate a held-out test set
-    if held_out_test > 0:
-        df_summary = summarize(df=df)
+    if held_out_test > 0 and held_out_test < 1:
+        # Set aside a percent of each class as a held-out test
+        df, df_held_out = sample(df=df,
+                                 n_sample=None,
+                                 frac=held_out_test,
+                                 grouped=True,
+                                 replace=False)
 
+    elif held_out_test > 0:
+        # Set aside a fixed number of each class as a held-out test
+        df_summary = summarize(df=df)
+        
         # Adjust held-out sampling, given min class size
         if df_summary['count'].min() <= held_out_test:
             held_out_test = np.floor(df_summary['count'].min()/2).astype(int)
-            
+        
         df, df_held_out = sample(df=df,
                                  n_sample=held_out_test,
                                  frac=None,
@@ -385,10 +394,13 @@ def crossval(mapfile=None,
         df_summary = summarize(df=df)
         if df_summary['count'].min() < k_fold:
             min_idx = np.argmin(df_summary['count'])
-            print('Class {0:d} has too few examples ({1:d}) for {2:d} fold cross-validation! Using {0:d} fold cross-validation instead'.format(df_summary['label'].ix[min_idx],df_summary['count'].ix[min_idx], k_fold ))
+            print_text = 'Class {0:d} has too few examples ({1:d})' + \
+                         'for {2:d} fold cross-validation! Using {1:d}' +\
+                         ' fold cross-validation instead'
+            print(print_text.format(df_summary['label'].ix[min_idx],
+                                    df_summary['count'].ix[min_idx],
+                                    k_fold))
             k_fold = df_summary['count'].min()
-            
-        #TODO save held out
         
     else:
         df_held_out = None
@@ -413,6 +425,9 @@ def crossval(mapfile=None,
 
     # Merge test idx with original df
     df = df.join(pd.DataFrame(all_test_idx, columns={'test_fold'}))
+
+    # Save
+#    if df_held_out
         #save_mapfile(df.ix[tr_idx], save_filepath.replace)
         #save_mapfile(df.ix[test_idx], save_filepath.replace('train','test'))
 
