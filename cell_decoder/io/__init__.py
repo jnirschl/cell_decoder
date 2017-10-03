@@ -34,6 +34,9 @@ from cell_decoder.io import mapfile_utils
 from cell_decoder.readers import default_reader, microscopy_reader
 from cell_decoder.visualize import plot
 
+# Set root dir
+root_dir = os.path.join(os.path.dirname(c_decoder.__file__))
+
 
 ## Create a data_struct class
 class DataStruct:
@@ -46,6 +49,9 @@ class DataStruct:
     # Class attributes
     RESNET_LAYERS = [18, 34, 50, 101, 152]
     READERS = ['default','microscopy']
+    VALID_MAPFILE_DICT_KEYS = ['train', 'validation', 'test']
+    VALID_READER_DICT_KEYS = VALID_MAPFILE_DICT_KEYS
+    VALID_MODEL_DICT_KEYS = ['input_var', 'label_var', 'net', 'num_classes']
 
     # Initialize class instance attributes
     def __init__(self,
@@ -85,24 +91,26 @@ class DataStruct:
     def read(self):
         '''
         DataStruct.read()
-        
-        Returns a the mapfile as a Pandas dataframe 
+
+        Returns a the mapfile as a Pandas dataframe
         '''
+        #TODO allow reading train/ test mapfile
+        #TODO allow reading images based on FP/FN (test set)
 
         df, _, _ = mapfile_utils.read(self.mapfile)
 
         return df
-    
+
     ##
-    def compute_mean(self,
-                     savepath=None,
-                     filename=None,
-                     data_aug=True,
-                     debug_mode=True,
-                     save_img=True,
-                     nargout=False):
+    def compute_image_mean(self,
+                           savepath=os.path.join(root_dir, 'meanfiles'),
+                           filename=None,
+                           data_aug=True,
+                           debug_mode=True,
+                           save_img=True,
+                           nargout=False):
         '''
-        DataStruct.compute_mean()
+        DataStruct.compute_image_mean()
 
         Computes the mean image and RGB pixel values
         for a given mapfile and saves a PNG and OpenCV
@@ -112,8 +120,7 @@ class DataStruct:
         '''
         # Set savepath
         if savepath is None:
-            savepath = os.path.join(os.path.dirname(compute_mean.__file__),
-                                    '../../meanfiles/')
+            savepath = os.path.join(root_dir,'meanfiles')
             savepath = os.path.normpath(savepath)
 
         # Set filename
@@ -140,47 +147,50 @@ class DataStruct:
 
             # Normalize image
             image_mean = img_utils.to_float(image_mean)
-            
+
             return image_mean
 
     ##
-    def cvpartition(self,
-                    k_fold=5,
-                    savepath='',
-                    held_out_frac=0.1,
-                    held_out_n=100,
-                    random_state=1):
+    def partition(self,
+                  k_fold=5,
+                  savepath=os.path.join(root_dir, 'mapfiles'),
+                  held_out_test=0.1,
+                  random_seed=None):
         '''
-        DataStruct.cvpartition()
+        DataStruct.partition()
 
         Partitions a mapfile into a training and held-out test
         data set. The training data set is split into k-fold for
         cross-validation.
 
         '''
+        # Set random seed, if not given
+        if random_seed is None:
+            random_seed = self.random_seed
+
         # Setup cross validation
-        df, df_held_out = mapfile_utils.crossval(self.mapfile,
-                                                 k_fold=k_fold,
-                                                 held_out_test=held_out_test,
-                                                 held_out_n=held_out_n,
-                                                 savepath=savepath,
-                                                 random_seed=random_state)
+        mapfile_dict = mapfile_utils.crossval(mapfile=self.mapfile,
+                                              k_fold=k_fold,
+                                              held_out_test=held_out_test,
+                                              savepath=savepath,
+                                              random_seed=random_seed)
 
-        # Set
+        # Assing object attributes
+        self.mapfile_dict = mapfile_dict
 
-        return df
+        return mapfile_dict
 
     ##
     def create_reader(self,
-                      transform_params,
-                      held_out_n=100,
-                      held_out_test=True,
-                      is_training=True,
+                      transform_params=None,
+                      held_out_test=0.1,
                       random_seed=None,
+                      mapfile_dict=None,
                       reader='default',
-                      savepath=os.getcwd(),
+                      savepath=os.path.join(root_dir, 'mapfiles'),
                       k_fold=5,
-                      allowed_readers=READERS):
+                      allowed_readers=READERS,
+                      valid_mapfile_dict=VALID_MAPFILE_DICT_KEYS):
         '''
         DataStruct.create_reader(TransformParams)
 
@@ -190,21 +200,111 @@ class DataStruct:
         if reader not in allowed_readers:
             raise ValueError('Invalid reader {0:s}!'.format(reader))
 
-        # Create minibatch source from DataStruct instance
-        if reader.lower()=='default':
-            mb_source = default_reader.image(self.mapfile,
-                                             transform_params,
-                                             num_classes=self.num_classes,
-                                             num_channels=self.num_channels,
-                                             height=self.image_height,
-                                             width=self.image_width,
-                                             mean_filepath=self.image_mean_filepath,
-                                             is_training=is_training,
-                                             use_mean_image=self.use_mean_image)
-        elif reader.lower()=='microscopy':
-            raise RuntimeError('This section not complete!')
+        # Set default transform parameters, if None
+        if transform_params is None:
+            print('Using default transform parameters.')
+            transform_params = TransformParameters()
 
-        return mb_source
+        # Override self.mapfile_dict if given as kwarg
+        if mapfile_dict is not None:
+            print('Input mapfile_dict will override any existing values.')
+            self.mapfile_dict = mapfile_dict
+
+        # Create mapfile_dict if none exists
+        if self.mapfile_dict is None:
+            # TODO update print text for fixed N vs fraction held-out
+            print('Partitioning data into training/ validation/' + \
+                  'and {0:0.2f}% test datasets.'.format(held_out_test))
+            mapfile_dict = partition(k_fold=k_fold,
+                                     savepath=savepath,
+                                     held_out_test=held_out_test,
+                                     random_seed=None)
+        else:
+            # TODO Check mapfile dict keys
+            # If exist, assign to mapfile_dict
+            mapfile_dict = self.mapfile_dict
+
+
+        # Check length of train/ test fold
+        train_fold = len(mapfile_dict['train'])
+        validation_fold = len(mapfile_dict['validation'])
+        assert (train_fold == validation_fold), \
+            'Training ({0:d}) and cross-validation ({1:d}) data partitions' +\
+            'must have the same number of folds!'.format(train_fold,
+                                                         validation_fold)
+
+        # TODO allow no validation dict
+
+        # Create minibatch sources from mapfile_dict
+        train_list = []
+        valid_list = []
+        for fold, (train_map, valid_map) in enumerate(zip(mapfile_dict['train'],
+                                        mapfile_dict['validation'])):
+            if reader.lower()=='default':
+                train_reader = default_reader.image(train_map,
+                                                    transform_params,
+                                                    num_classes=self.num_classes,
+                                                    num_channels=self.num_channels,
+                                                    height=self.image_height,
+                                                    width=self.image_width,
+                                                    mean_filepath=self.image_mean_filepath,
+                                                    is_training=True,
+                                                    use_mean_image=self.use_mean_image,
+                                                    verbose=(fold==0))
+
+                valid_reader = default_reader.image(valid_map,
+                                                    transform_params,
+                                                    num_classes=self.num_classes,
+                                                    num_channels=self.num_channels,
+                                                    height=self.image_height,
+                                                    width=self.image_width,
+                                                    mean_filepath=self.image_mean_filepath,
+                                                    is_training=False,
+                                                    use_mean_image=self.use_mean_image,
+                                                    verbose=False)
+
+
+                # Append to list
+                train_list.append(train_reader)
+                valid_list.append(valid_reader)
+
+            elif reader.lower()=='microscopy':
+                raise RuntimeError('This section not complete!')
+
+        # Create held-out-test reader, if available
+        if mapfile_dict['test'] is not None:
+            print('Creating test reader')
+
+            # Create output list
+            test_list = []
+            for test_map in mapfile_dict['test']:
+                test_reader = default_reader.image(test_map,
+                                                 transform_params,
+                                                 num_classes=self.num_classes,
+                                                 num_channels=self.num_channels,
+                                                 height=self.image_height,
+                                                 width=self.image_width,
+                                                 mean_filepath=self.image_mean_filepath,
+                                                 is_training=False,
+                                                 use_mean_image=self.use_mean_image,
+                                                 verbose=False)
+                # Append list
+                test_list.append(test_reader)
+
+        # Assign reader_dict
+        if mapfile_dict['test'] is None:
+            reader_dict = {'train':train_list,
+                           'validtion':valid_list,
+                           'test':[None]}
+        else:
+            reader_dict = {'train':train_list,
+                           'validtion':valid_list,
+                           'test':test_list}
+
+        # Assing object attributes
+        self.reader_dict = reader_dict
+
+        return reader_dict
 
     ##
     def create_model(self,
@@ -249,14 +349,45 @@ class DataStruct:
         return model_dict
 
     ##
-    def train_model(self):
+    def train_model(self,
+                    model_dict=None,
+                    reader_dict=None,
+                    learn_params=LearningParameters(),
+                    valid_model_dict=VALID_MODEL_DICT_KEYS,
+                    valid_reader_dict=VALID_READER_DICT_KEYS):
         '''
         DataStruct.train_model()
 
         Returns the trained network and a history of the
         training accuracy/ loss and validation accuracy.
         '''
-        # Error check
+        # Override self.reader_dict if given as kwarg
+        if reader_dict is not None:
+            print('Input reader_dict will override any existing values.')
+            self.reader_dict = reader_dict
+
+        # Create mapfile_dict if none exists
+        if self.reader_dict is None:
+            print('No readers detected, creating default reader.')
+            reader_dict = create_reader(held_out_test=0.1,
+                                        k_fold=5,
+                                        mapfile_dict=None,
+                                        random_seed=None,
+                                        reader='default',
+                                        savepath=os.path.join(root_dir, 'mapfiles'),
+                                        transform_params=TransformParameters())
+
+        else:
+            # TODO Check reader dict keys
+            # If exists, assign to mapfile_dict
+            reader_dict = self.reader_dict
+
+        # Override self.model_dict if given as kwarg
+        if model_dict is not None:
+             print('Input model_dict will override any existing values.')
+             self.model_dict = model_dict
+
+        # Create model_dict if none exists
         if self.model_dict is None:
             print('No models detected, creating default network.')
             model_parameters = ResNetParameters()
@@ -271,27 +402,29 @@ class DataStruct:
 
         else:
             # Check model keys
-            valid_model_dict = ['input_var', 'label_var',
-                                'net', 'num_classes']
             for elem in self.model_dict.keys():
                 if elem not in valid_model_dict:
                     raise TypeError('Invalid model dictionary')
 
-        # Call model training subfunction, allow cross validation
-        net, training_hx = models.train(self.model_dict,
-                                        reader_train,
-                                        train_epoch_size,
-                                        learn_params,
-                                        self.num_classes,
-                                        debug_mode=self.debug_mode,
-                                        gpu=self.gpu,
-                                        model_save_root=self.model_save_root,
-                                        profiler_dir=self.profiler_dir,
-                                        reader_test=self.reader_test,
-                                        tb_log_dir=self.tb_log_dir,
-                                        tb_freq=self.tb_freq,
-                                        test_epoch_size=self.test_epoch_size,
-                                        extra_aug=self.extra_aug)
+        # Train models using cross-validation
+        training_history = []
+        for fold, (r_train, r_valid) enumerate(reader_dict['train'],
+                                               reader_dict['validation']):
+            # Call model training subfunction
+            net, training_hx = models.train(self.model_dict,
+                                            r_train[0], # train mb_source
+                                            r_train[1], # train n examples
+                                            learn_params, # learning_settings
+                                            reader_valid=r_valid[0],
+                                            valid_epoch_size=r_valid[1],
+                                            debug_mode=self.debug_mode,
+                                            gpu=self.gpu,
+                                            model_save_root=self.model_save_root,
+                                            profiler_dir=self.profiler_dir,
+                                            tb_log_dir=self.tb_log_dir,
+                                            tb_freq=self.tb_freq,
+                                            test_epoch_size=self.test_epoch_size,
+                                            extra_aug=self.extra_aug)
 
         return net, training_hx
 
@@ -339,7 +472,7 @@ class DataStruct:
             filepath = os.path.join(root_dir, filename)
             df = pd.read_csv(filepath, sep='\t', header=True)
         else:
-            raise RuntimeError('This section is not complete!')
+            raise NotImplemented('This section is not complete!')
 
         # Call plotting subfunction
         if backend == 'plotly':
@@ -353,7 +486,7 @@ class DataStruct:
                                  hovermode='closest',
                                  text_labels=None)
         elif backend == 'holoviews':
-            raise RuntimeError('This section is not complete!')
+            raise NotImplemented('This section is not complete!')
 
         return fig
 
@@ -375,7 +508,8 @@ class DataStruct:
         return hv_img
 
     ##
-    def save(self, savepath):
+    def save(self,
+             savepath=root_dir):
         '''
         DataStruct.save()
 

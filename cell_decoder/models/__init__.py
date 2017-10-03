@@ -153,19 +153,19 @@ def create(model_parameters,
 ##
 def train(model_dict,
           reader_train,
-          train_epoch_size,
+          train_epoch_size, # N examples in 1 epoch
           learn_params,
-          num_classes,
+          reader_valid=None,
+          valid_epoch_size=None,
           debug_mode=False,
           gpu=True,
           model_save_root=None,
           profiler_dir=None,
-          reader_test=None,
           tb_log_dir='C:/TensorBoard_logs/cntk',
           tb_freq=10,
-          test_epoch_size=None,
           extra_aug=True):
-    '''models.train()
+    '''
+    models.train()
 
     Returns the trained network and a history of the
     training accuracy/ loss and test accuracy.

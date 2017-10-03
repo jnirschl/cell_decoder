@@ -321,6 +321,9 @@ def sample(mapfile=None,
     # Drop column orig_idx
     df_subset.drop(['orig_idx'], axis=1, inplace=True)
 
+    # Reoder columns to [filepath, label]
+    df_subset = df_subset.reindex_axis(['filepath', 'label'], axis=1)
+
     return df_supset, df_subset
 
 ##
@@ -360,13 +363,14 @@ def summarize(df=None,
 
 ##
 def crossval(df=None,
+             mapfile=None,
+             file_ext='.tsv',
              held_out_test=50,
              k_fold=10,
-             mapfile=None,
              method='skf',
              random_seed=None,
              save=True,
-             save_root=root_dir):
+             savepath=os.path.join(root_dir, 'mapfiles')):
     '''
     df_train, df_held_out = crossval()
 
@@ -375,21 +379,25 @@ def crossval(df=None,
     and a held-out dataset. Mapfiles are saved to the mapfile
     directory.
 
-    Returns a df_train (training + cross-validation) and df_held_out.
+    Returns a dictionary with training and test df_train (training + cross-validation) and df_held_out.
     '''
     
     # Read mapfile or get df
     if mapfile is None:
         assert isinstance(df, pd.DataFrame), \
             'df must be a Pandas DataFrame!'
+        
     elif df is None:
         assert (isinstance(mapfile, str) and os.path.isfile(mapfile)), \
             'Mapfile must be a valid file!'
-        df, mapfile_root, _ = read(mapfile)
+        df, mapfile_root, mapfile_name = read(mapfile)
+
+        # Keep same file extension as mapfile
+        file_ext = os.path.splitext(mapfile_name)[1]
         save_root = mapfile_root
     else:
         raise ValueError('A valid mapfile or Pandas dataframe is required!')      
-
+        
     # Separate a held-out test set
     if held_out_test > 0 and held_out_test < 1:
         # Assume held_out_test is a fraction.
@@ -440,20 +448,29 @@ def crossval(df=None,
                                label='label',
                                method=method,
                                k_fold=k_fold,
-                               random_state=random_state)
+                               random_seed=random_seed)
 
     # Save output
     if save:
-        print('Saving files to\n\t{0:s}'.format(save_root))
+        print('Saving map files to:\n\t{0:s}'.format(save_root))
+
+        # Set the delimiter based on file ext
+        if file_ext == '.csv':
+            sep = ','
+        elif file_ext == '.tsv':
+            sep = '\t'
+        else:
+            raise ValueError('Unsupported file extension ({0:s})!'.format(file_ext))
 
         # Save mapfiles
-        save_filename = '{0:02d}_train_mapfile.tsv'
+        save_filename = '{0:02d}_train_mapfile' + file_ext
         save_filepath = os.path.join(save_root, save_filename)    
-        train_mapfile_list = [elem.format(fold) for fold, elem in zip(range(0, k_fold)), [save_filepath]*k_fold]
-        test_mapfile_list = [elem.replace('train', 'test') for elem in train_mapfile_list]
+        train_mapfile_list = [elem.format(fold) for fold, elem in zip(range(0, k_fold), [save_filepath]*k_fold)]
+        test_mapfile_list = [elem.replace('train', 'val') for elem in train_mapfile_list]
 
         # 
         for fold, test_df in df.groupby('validation_fold'):
+            fold = int(fold)
             test_ix = test_df.index
             train_ix = np.setdiff1d(df.index, test_ix)
             
@@ -462,25 +479,38 @@ def crossval(df=None,
             
             # write csv
             train_df.to_csv(save_filepath.format(fold),
-                            sep='\t', header=False,
-                            index=False)
-            test_df.to_csv(save_filepath.replace('train','test').format(fold),
-                           sep='\t', header=False,
-                           index=False)
+                            sep=sep, header=False, index=False,
+                            columns=['filepath','label'])
+            test_df.to_csv(save_filepath.replace('train','val').format(fold),
+                           sep=sep, header=False, index=False,
+                           columns=['filepath','label'])
         
-        # Save train and held-out
-        df.to_csv(save_filepath.replace('train','all_train-val'), sep='\t',
+        # Save all training mapfile
+        save_filepath = save_filepath.replace('{0:02d}_','')
+        df.to_csv(save_filepath.replace('train','all_train-val'), sep=sep,
                   header=False, index=False)
-            
+
+        # Save held-out test
         if df_held_out is not None:
-            df_held_out.to_csv(save_filepath.replace('train','held-out-test'),
-                               sep='\t', header=False, index=False)
+            held_out_test_mapfile = save_filepath.replace('train','all_test')
+            df_held_out.to_csv(held_out_test_mapfile,
+                               sep=sep, header=False, index=False,
+                               columns=['filepath','label'])
 
     else:
         train_mapfile_list = None
         test_mapfile_list = None
 
-    return {'train':train_mapfile_list,
-            'test':test_mapfile_list}
+    # Set output vars
+    if df_held_out is None:
+        mapfile_dict = {'train':train_mapfile_list,
+                        'validation':test_mapfile_list,
+                        'test':[None]}
+    else:
+        mapfile_dict = {'train':train_mapfile_list,
+                        'validation':test_mapfile_list,
+                        'test':[held_out_test_mapfile]}
+
+    return mapfile_dict
 
 ## TODO coordinate text labels and mapfile labels

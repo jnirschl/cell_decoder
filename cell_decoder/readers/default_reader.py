@@ -23,6 +23,7 @@ from cntk.io import ImageDeserializer, MinibatchSource, StreamDef, StreamDefs, I
 
 # cell_decoder imports
 from cell_decoder.config import TransformParameters
+from cell_decoder.io import mapfile_utils
 
 ##
 def image(mapfile,
@@ -33,7 +34,8 @@ def image(mapfile,
           width=224,
           mean_filepath=None,
           is_training=True,
-          use_mean_image=True):
+          use_mean_image=True,
+          verbose=True):
     '''
     default_reader.image(mapfile, transform_params, num_classes,
                         is_training=True, use_image_mean=True)
@@ -41,11 +43,15 @@ def image(mapfile,
     if not (type(transform_params) == type(TransformParameters())):
         raise ValueError('transform_params must be a valid TransformParameters class.')
 
+    # Allocate empty transforms list
     transforms = []
 
+    # Read mapfile and set epoch_size
+    df, _, _ = mapfile_utils.read(mapfile)
+    epoch_size = df.shape[0]
+    
     # Set num_classes, if not entered
     if num_classes is None:
-        df, _, _ = mapfile_utils.read(mapfile)
         num_classes = len(df['labels'].unique())
 
     # Random cropping and side_ratio jitter during training
@@ -78,7 +84,9 @@ def image(mapfile,
                          interpolations=transform_params.interpolations),
             xforms.mean(mean_filepath)
         ]
-        print('Subtracting mean image.\n')
+
+        if verbose:
+            print('Subtracting mean image.')
     else:
         # Subtract pixel mean
         transforms += [
@@ -87,7 +95,9 @@ def image(mapfile,
                          num_channels,
                          interpolations=transform_params.interpolations)
         ]
-        print('Subtracting mean pixel values.\n')
+
+        if verbose:
+            print('Subtracting mean pixel values.')
 
     # Initialize image deserializer
     deserializer = ImageDeserializer(filename=mapfile,
@@ -101,4 +111,4 @@ def image(mapfile,
                                  randomize=is_training,
                                  max_sweeps=INFINITELY_REPEAT if is_training else 1)
 
-    return mb_source
+    return mb_source, epoch_size

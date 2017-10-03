@@ -45,19 +45,14 @@ class DataStructParameters():
                  scaling_factor=0.00390625,
                  tb_freq=10,
                  tb_log_dir='C:/TensorBoard_logs/cntk',
-                 test_map=None,
                  text_labels=None,
-                 train_map=None,
-                 use_mean_image=False,
-                 valid_map=None):
-        # Either input one mapfile to convert into train/ test/
-        # valid or each separately
+                 use_mean_image=False):
+                 
+        # Input mapfile, partition into train/ valid/ test later
         if mapfile:
             self.mapfile = mapfile
         else:
-            self.train_map = train_map
-            self.test_map = test_map
-            self.valid_map = valid_map
+            self.mapfile = None
 
         # Set the filepath for the text labels
         self.text_labels = text_labels
