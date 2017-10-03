@@ -22,9 +22,8 @@ import time
 
 # Additional imports
 import cntk as C
-from cntk.learners import adadelta, adagrad, momentum_sgd, momentum_schedule, learning_rate_schedule, momentum_as_time_constant_schedule, rmsprop
+from cntk.learners import adadelta, adagrad, momentum_sgd, momentum_schedule, learning_parameter_schedule, momentum_as_time_constant_schedule, rmsprop
 
-from cell_decoder.io import DataStructParameters
 
 ## DataStructParameters class
 class DataStructParameters():
@@ -97,27 +96,39 @@ class LearningParameters():
     '''
     A LearningParameters class for storing cntk learning parameters.
     '''
-
+    
     VALID_MODEL_DICT_KEYS =  ['input_var', 'label_var', 'net', 'num_classes']
     
     def __init__(self,
                  epsilon=1e-3, # Adadelta
                  l2_reg_weight=1e-4, # CNTK L2 reg is per sample, like caffe
-                 lr_per_mb=[ [0.01]*5 +[ 0.1]*30 + [0.01]*30 + [0.001]*25],
+                 learning_rate=[ [0.01]*5 + [ 0.1]*30 + [0.01]*30 + [0.001]*25],
                  max_epochs=100,
                  mb_size=64,
-                 momentum=0.9,
+                 momentum=[[0.99]*5 + [0.95]*30 + [0.9]],
                  momentum_time_const=1,
-                 optimizer='sgd',
+                 optimizer='momentum_sgd',
                  rho=0.9, # Adadelta
-                 loss='cross-entropy'):
+                 loss_fn='cross-entropy'):
         self.epsilon = epsilon
         self.l2_reg_weight = l2_reg_weight
-        self.lr_per_mb = lr_per_mb
-        self.loss_fn = loss
-        self.max_epochs = max_epochs
-        self.mb_size = mb_size
-        self.momentum = momentum
+
+        # Set learning rate, unwrap list, if necessary
+        if isinstance(learning_rate, list):
+            self.learning_rate = [elem for sub_list in learning_rate for elem in sub_list ]
+        else:
+            self.learning_rate = learning_rate
+            
+        self.loss_fn = loss_fn
+        self.max_epochs = int(max_epochs)
+        self.mb_size = int(mb_size)
+
+        # Set momentum, unwrap list, if necessary
+        if isinstance(momentum, list):
+            self.momentum = [elem for sub_list in momentum for elem in sub_list ]
+        else:
+            self.momentum = momentum
+            
         self.momentum_time_const = momentum_time_const
         self.optimizer = optimizer
         self.rho = rho
@@ -138,23 +149,28 @@ class LearningParameters():
                 raise TypeError('Invalid model dictionary key ({0:s})'.format(elem))
                  
         if self.optimizer =='momentum_sgd':
-            momentum_time_const = -self.mb_size/np.log(0.9)
-            lr_per_sample  = [ lr/self.mb_size for lr in self.lr_per_mb]
-            lr_schedule = learning_parameter_schedule(lr_per_sample,
-                                                      mb_size=self.mb_size,
-                                                      epoch_size=epoch_size)
-            mm_schedule = momentum_as_time_constant_schedule(momentum_time_const)
+#            momentum_time_const = -self.mb_size/np.log(0.9)
+#            lr_per_sample  = [ lr/self.mb_size for lr in self.lr_per_mb]
+            lr_schedule = learning_parameter_schedule(self.learning_rate,
+                                                        minibatch_size=self.mb_size) #epoch_size=epoch_size
+            mm_schedule = momentum_schedule(self.momentum,
+                                            minibatch_size=self.mb_size) #epoch_size=int(epoch_size)
             learner = momentum_sgd(model_dict['net'].parameters,
                                    lr_schedule,
                                    mm_schedule,
-                                   l2_regularization_weight=learn_params['l2_reg_weight'])
+                                   l2_regularization_weight=self.l2_reg_weight,
+                                   minibatch_size=self.mb_size, #OPT
+                                   epoch_size=epoch_size, #OPT
+                                   gaussian_noise_injection_std_dev=0.01, #OPT
+                                   gradient_clipping_threshold_per_sample=True) # OPT
             # Assign output dictionary
             learn_dict = {
                 'learner': learner,
+                'learning_rate':self.learning_rate,
                 'lr_schedule': lr_schedule,
                 'mb_size':self.mb_size,
                 'mm_schedule': mm_schedule ,
-                'momentum_time_const':momentum_time_const,
+                'momentum_time_const':self.momentum,
                 'max_epochs':self.max_epochs
             }
         elif self.optimizer == 'sgd':

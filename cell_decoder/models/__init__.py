@@ -116,7 +116,7 @@ def create(model_parameters,
     # The pixel mean is subtracted in the model. The mean image
     # is subtracted while creating the mb_source (e.g. in ImageDeserializer)
     if use_mean_image:
-        input_var = C.ops.minus(input_scaled,
+        input_var = C.ops.minus(input_var,
                                 C.ops.constant(pixel_mean),
                                 name="input_mean_sub")
 
@@ -155,15 +155,16 @@ def train(model_dict,
           reader_train,
           train_epoch_size, # N examples in 1 epoch
           learn_params,
-          reader_valid=None,
-          valid_epoch_size=None,
           debug_mode=False,
+          extra_aug=True,
           gpu=True,
           model_save_root=None,
           profiler_dir=None,
-          tb_log_dir='C:/TensorBoard_logs/cntk',
+          reader_valid=None,
           tb_freq=10,
-          extra_aug=True):
+          tb_log_dir='C:/TensorBoard_logs/cntk',
+          top_n=1,
+          valid_epoch_size=None):
     '''
     models.train()
 
@@ -183,7 +184,8 @@ def train(model_dict,
 
     # Set input var
     input_var = model_dict['input_var']
-    label_var = model_dict['input_var']
+    label_var = model_dict['label_var']
+    num_classes = model_dict['num_classes']
 
     # Set network
     net = model_dict['net']
@@ -198,15 +200,13 @@ def train(model_dict,
     # Set the learning  parameters
     mb_size = learn_params['mb_size']
     momentum_time_constant = learn_params['momentum_time_const']
-    lr_per_sample = learn_params['lr_per_mb']
+    lr_per_sample = learn_params['learning_rate']
     lr_schedule = learn_params['lr_schedule']
     mm_schedule = learn_params['mm_schedule']
 
     # Define classification loss and eval metrics
     loss_fn = cross_entropy_with_softmax(net, label_var)
-    eval_fn = classification_error(net, label_var)
-#        evaluationNodes = (errs) # top5Errs only used in Eval
-
+    eval_fn = classification_error(net, label_var, topN=top_n)
 
     # progress writers
     progress_printer = [ProgressPrinter(tag='Training',
@@ -233,20 +233,10 @@ def train(model_dict,
         except:
             os.mkdir(model_save_root)
 
-    # trainer object
-    if learn_params['learner']=='adadelta':
-        raise RuntimeError('Not yet implemented')
-#        print('Training using adadelta')
-#        learner = adadelta(net.parameters, lr_schedule)
-    elif learn_params['learner']=='sgd':
-        print('Training using momentum_sgd')
-        learner = momentum_sgd(net.parameters,
-                               lr_schedule,
-                               mm_schedule,
-                               l2_regularization_weight=learn_params['l2_reg_weight'])
-
     # Create training obj
-    trainer = Trainer(net, (loss_fn, eval_fn), learner, progress_printer)
+    trainer = Trainer(net, (loss_fn, eval_fn),
+                      learn_params['learner'],
+                      progress_printer)
 
     # define mapping from reader streams to network inputs
     input_map = {
@@ -257,19 +247,18 @@ def train(model_dict,
     # Print the number of parameters
     log_number_of_parameters(net) ; print()
 
-    # TODO - Save data_struct dictionary as pickle
-#    save_filename = os.path.join(data_struct['model_save_root'],
-#                                 data_struct['network_name'] + "_data-struct.pickle")
-#    with open(save_filename, 'wb') as save_handle:
-        #pickle.dump(data_struct, save_handle, protocol=pickle.HIGHEST_PROTOCOL)
-
+    # TODO - Save parameters from data_struct as pickle
 
     # perform model training
     if profiler_dir:
         start_profiler(profiler_dir, True)
 
-    # Train over (1, max_epochs)
+    # Train over (0, max_epochs)
     cumulative_count = 0
+    training_history = {'batch_index':[],
+                        'avg_loss':[],
+                        'avg_error':[]}
+    
     for epoch in range(learn_params['max_epochs']):
         sample_count = 0 #   running_loss = []
 
@@ -297,6 +286,12 @@ def train(model_dict,
             sample_count += trainer.previous_minibatch_sample_count # n samples seen
             cumulative_count += sample_count
 
+            # For visualization...            
+            training_history['batch_index'].append(batch_index)
+            training_history['batch_index'].append(batch_index)
+            training_history['avg_loss'].append(trainer.previous_minibatch_loss_average)
+            training_history['avg_error'].append(trainer.previous_minibatch_evaluation_average)
+
         # Summarize training at the end of each epoch
         trainer.summarize_training_progress()
 
@@ -304,10 +299,13 @@ def train(model_dict,
 #        running_loss.append(trainer.previous_minibatch_loss_average)
 
         # Evaluate test set accuracy
-        if reader_test and epoch > 0:
-            test_accuracy = evaluate_model.start(trainer, input_map,
-                                                 label_var, reader_test,
-                                                 test_epoch_size, mb_size)
+        if reader_valid and valid_epoch_size and epoch > 0:
+            test_accuracy = evaluate_model.start(trainer,
+                                                 input_map,
+                                                 label_var,
+                                                 reader_valid,
+                                                 valid_epoch_size,
+                                                 mb_size)
 
             # Log average test set loss and prediction errror.
             if tensorboard_writer:
@@ -317,12 +315,15 @@ def train(model_dict,
 
 
 
-        if data_struct['model_save_root']:
-            trainer.save_checkpoint(os.path.join(data_struct['model_save_root'],
-                                             data_struct['network_name'] + "_chkpt_{0}.dnn".format(epoch)))
-        enable_profiler() # begin to collect profiler data after first epoch
+        if model_save_root:
+            checkpoint_name = network_name + "_chkpt_{0}.dnn".format(epoch)
+            trainer.save_checkpoint(os.path.join(model_save_root,
+                                                 checkpoint_name))
 
-    # Stop profiler, if enabled
+        # Begin collecting profiler data after the first epoch
+        enable_profiler() 
+
+    # Stop profiler at the end of training, if enabled
     if profiler_dir:
         stop_profiler()
 
@@ -349,9 +350,9 @@ def load():
     '''
 
 ##
-def print(trained_model):
+def print_model(trained_model):
     '''
-    models.print()
+    models.print_model()
 
     Prints the cntk model structure for a given model or filepath to model.
     '''

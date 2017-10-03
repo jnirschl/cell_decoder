@@ -357,9 +357,10 @@ class DataStruct:
     def train_model(self,
                     model_dict=None,
                     reader_dict=None,
-                    learn_params=LearningParameters(),
+                    learn_params=None,
                     valid_model_dict=VALID_MODEL_DICT_KEYS,
-                    valid_reader_dict=VALID_READER_DICT_KEYS):
+                    valid_reader_dict=VALID_READER_DICT_KEYS,
+                    verbose=False):
         '''
         DataStruct.train_model()
 
@@ -417,15 +418,29 @@ class DataStruct:
 
             model_dict = self.model_dict
 
+
+        # Create and compile learn_params if none exists
+        if learn_params is None:
+            print('Using default learning parameters.')
+            
+            learn_params = []
+            for fold in  reader_dict['train']:
+                train_learn = LearningParameters()
+                learn_dict = train_learn.compile(model_dict, fold['epoch_size'])
+                learn_params.append(learn_dict)
+        
         # Train models using cross-validation
         training_history = []
         for fold, (r_train, r_valid) in enumerate(zip(reader_dict['train'],
                                                       reader_dict['validation'])):
+            if verbose:
+                print('Training fold {0:02d}',format(fold))
+            
             # Call model training subfunction
             net, training_hx = models.train(model_dict,
                                             r_train['mb_source'],
                                             r_train['epoch_size'],
-                                            learn_params, # learning_settings
+                                            learn_params[fold],
                                             reader_valid=r_valid['mb_source'],
                                             valid_epoch_size=r_valid['epoch_size'],
                                             debug_mode=self.debug_mode,
@@ -434,8 +449,7 @@ class DataStruct:
                                             profiler_dir=self.profiler_dir,
                                             tb_log_dir=self.tb_log_dir,
                                             tb_freq=self.tb_freq,
-                                            test_epoch_size=self.test_epoch_size,
-                                            extra_aug=self.extra_aug)
+                                            extra_aug=True)
 
         return net, training_hx
 
