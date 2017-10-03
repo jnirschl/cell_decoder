@@ -8,7 +8,9 @@
 # Distributable under an MIT License
 # ==============================================================================
 '''
-Cell DECODER function to create an image reader.
+
+.. module::cell_decoder.readers.default_reader
+    :synopsis: Default image reader using ImageDeserializer
 
 Copyright (c) 2017 Jeffrey J. Nirschl
 '''
@@ -111,4 +113,5 @@ def image(mapfile,
                                  randomize=is_training,
                                  max_sweeps=INFINITELY_REPEAT if is_training else 1)
 
-    return mb_source, epoch_size
+    return {'mb_source':mb_source,
+            'epoch_size':epoch_size}

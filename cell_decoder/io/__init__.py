@@ -154,7 +154,7 @@ class DataStruct:
     def partition(self,
                   k_fold=5,
                   savepath=os.path.join(root_dir, 'mapfiles'),
-                  held_out_test=0.1,
+                  held_out_test=0.05,
                   random_seed=None):
         '''
         DataStruct.partition()
@@ -221,6 +221,11 @@ class DataStruct:
                                      random_seed=None)
         else:
             # TODO Check mapfile dict keys
+             # Check model keys
+            for elem in self.mapfile_dict.keys():
+                if elem not in valid_mapfile_dict:
+                    raise TypeError('Invalid mapfile dictionary key ({0:s})'.format(elem))
+                        
             # If exist, assign to mapfile_dict
             mapfile_dict = self.mapfile_dict
 
@@ -273,7 +278,7 @@ class DataStruct:
 
         # Create held-out-test reader, if available
         if mapfile_dict['test'] is not None:
-            print('Creating test reader')
+            print('\nCreating test reader')
 
             # Create output list
             test_list = []
@@ -294,11 +299,11 @@ class DataStruct:
         # Assign reader_dict
         if mapfile_dict['test'] is None:
             reader_dict = {'train':train_list,
-                           'validtion':valid_list,
+                           'validation':valid_list,
                            'test':[None]}
         else:
             reader_dict = {'train':train_list,
-                           'validtion':valid_list,
+                           'validation':valid_list,
                            'test':test_list}
 
         # Assing object attributes
@@ -327,7 +332,7 @@ class DataStruct:
 
             for elem in model_parameters.__dict__:
                 if elem not in valid_model_params.__dict__.keys():
-                    raise TypeError('Invalid model parameter')
+                    raise TypeError('Invalid model parameter key ({0:s})'.format(elem))
 
         else:
             print('Using default model parameters.')
@@ -378,8 +383,12 @@ class DataStruct:
                                         transform_params=TransformParameters())
 
         else:
-            # TODO Check reader dict keys
-            # If exists, assign to mapfile_dict
+            # Check model keys
+            for elem in self.reader_dict.keys():
+                if elem not in valid_reader_dict:
+                    raise TypeError('Invalid reader dictionary key ({0:s})'.format(elem))
+            
+            # If exists, assign to reader_dict
             reader_dict = self.reader_dict
 
         # Override self.model_dict if given as kwarg
@@ -404,19 +413,21 @@ class DataStruct:
             # Check model keys
             for elem in self.model_dict.keys():
                 if elem not in valid_model_dict:
-                    raise TypeError('Invalid model dictionary')
+                    raise TypeError('Invalid model dictionary key ({0:s})'.format(elem))
+
+            model_dict = self.model_dict
 
         # Train models using cross-validation
         training_history = []
-        for fold, (r_train, r_valid) enumerate(reader_dict['train'],
-                                               reader_dict['validation']):
+        for fold, (r_train, r_valid) in enumerate(zip(reader_dict['train'],
+                                                      reader_dict['validation'])):
             # Call model training subfunction
-            net, training_hx = models.train(self.model_dict,
-                                            r_train[0], # train mb_source
-                                            r_train[1], # train n examples
+            net, training_hx = models.train(model_dict,
+                                            r_train['mb_source'],
+                                            r_train['epoch_size'],
                                             learn_params, # learning_settings
-                                            reader_valid=r_valid[0],
-                                            valid_epoch_size=r_valid[1],
+                                            reader_valid=r_valid['mb_source'],
+                                            valid_epoch_size=r_valid['epoch_size'],
                                             debug_mode=self.debug_mode,
                                             gpu=self.gpu,
                                             model_save_root=self.model_save_root,
