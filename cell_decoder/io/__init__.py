@@ -19,6 +19,7 @@ import os
 import copy
 import numpy as np
 import pandas as pd
+import gc
 
 #
 import cv2
@@ -355,6 +356,7 @@ class DataStruct:
 
     ##
     def train_model(self,
+                    debug_mode=False,
                     model_dict=None,
                     reader_dict=None,
                     learn_params=None,
@@ -369,8 +371,9 @@ class DataStruct:
         Returns the trained network and a history of the
         training accuracy/ loss and validation accuracy.
         '''
-        if self.debug_mode:
+        if debug_mode or self.debug_mode:
             max_epochs = 2
+            debug_mode = True
         
         # Override self.reader_dict if given as kwarg
         if reader_dict is not None:
@@ -439,6 +442,7 @@ class DataStruct:
                             'train_df':[] }
         
         # Train models using cross-validation
+        print(20*'-')
         for fold, (r_train, r_valid) in enumerate(zip(reader_dict['train'],
                                                       reader_dict['validation'])):
             if verbose:
@@ -451,13 +455,16 @@ class DataStruct:
                                                 learn_params[fold],
                                                 reader_valid=r_valid['mb_source'],
                                                 valid_epoch_size=r_valid['epoch_size'],
-                                                debug_mode=self.debug_mode,
+                                                debug_mode=debug_mode,
                                                 gpu=self.gpu,
                                                 model_save_root=self.model_save_root,
                                                 profiler_dir=self.profiler_dir,
                                                 tb_log_dir=self.tb_log_dir,
                                                 tb_freq=self.tb_freq,
                                                 extra_aug=True)
+
+            # Clear gpu memory
+            gc.collect()
 
             # Save to output dictionary
             training_summary['model_path'].append(model_path)
@@ -475,8 +482,9 @@ class DataStruct:
             output = output.append(df) #  ignore_index=True
 
         
-        training_summary['train_df'] = output['train_loss', 'train_error',
-                                              'test_error']
+        training_summary['train_df'] = output #[['sample_count', 'mb_index',
+#                                               'epoch_index', 'train_loss', 'train_error',
+#                                               'test_error']]
             
         return training_summary
 
@@ -559,6 +567,44 @@ class DataStruct:
                                        max_size=max_size)
         return hv_img
 
+    ##
+    def get_next_minibatch(self,
+                           partition='train',
+                           fold=0,
+                           num_samples=1):
+        '''
+        DataStruct.get_next_minibatch
+        '''
+        # Get reader_dict
+        if self.reader_dict is None:
+            reader_dict = create_reader(held_out_test=0.1,
+                                        k_fold=5,
+                                        mapfile_dict=None,
+                                        random_seed=None,
+                                        reader='default',
+                                        savepath=os.path.join(ROOT_DIR, 'mapfiles'),
+                                        transform_params=TransformParameters())
+            self.reader_dict = reader_dict
+        else:
+            reader_dict = self.reader_dict
+
+        # Get model_dict
+        if self.model_dict is None:
+            raise RuntimeError('Please run create_model first!')
+        else:
+            input_var = self.model_dict['input_var']
+            label_var = self.model_dict['label_var']
+            
+        reader_train =  reader_dict[partition][fold]['mb_source']
+        input_map = {
+            input_var: reader_train.streams.features,
+            label_var: reader_train.streams.labels
+        }
+        
+        data = reader_train.next_minibatch(num_samples,
+                                           input_map=input_map)
+
+        return reader_train, data
     ##
     def save(self,
              savepath=ROOT_DIR):

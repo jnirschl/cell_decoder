@@ -27,9 +27,9 @@ __all__ = ['AlexNet',
 # Imports
 import os
 import copy
-
 import numpy as np
 import pandas as pd
+
 #import pickle
 #from scipy.stats import kstest
 
@@ -262,8 +262,9 @@ def train(model_dict,
                 'train_loss':[], 'train_error':[],
                 'test_error':[]}
 
-    # Set cumulative minibatch count
+    # Set minibatch count and cumulative sample count
     mb_count = 0
+    cumulative_count = 0
     for epoch in range(learn_params['max_epochs']):
         # Reset sample_count and epoch fraction each epoch
         sample_count = 0
@@ -299,10 +300,11 @@ def train(model_dict,
 
             # Update counts
             mb_count += 1
-            cumulative_count += sample_count
+            cumulative_count += data[label_var].num_samples
             epoch_fraction = np.divide(sample_count, train_epoch_size)
-            sample_count += trainer.previous_minibatch_sample_count
+            sample_count += data[label_var].num_samples
 
+            #todo consider updating count before/ after
 
         # Summarize training at the end of each epoch
         trainer.summarize_training_progress()
