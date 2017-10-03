@@ -24,6 +24,8 @@ import time
 import cntk as C
 from cntk.learners import adadelta, adagrad, momentum_sgd, momentum_schedule, learning_rate_schedule, momentum_as_time_constant_schedule, rmsprop
 
+from cell_decoder.io import DataStructParameters
+
 ## DataStructParameters class
 class DataStructParameters():
     '''
@@ -31,6 +33,7 @@ class DataStructParameters():
     '''
     def __init__(self,
                  debug_mode=True,
+                 gpu=True,
                  image_height=224,
                  image_mean_filepath=None,
                  image_width=224,
@@ -73,11 +76,15 @@ class DataStructParameters():
         self.tb_log_dir = tb_log_dir
         self.profiler_dir = profiler_dir
         self.debug_mode = debug_mode
+        self.gpu = gpu
         self.microns_per_pixel = microns_per_pixel
 
         # Train/ save params
         self.model_dict = model_dict # Stores input_var, label_var, and net
         self.model_save_root = model_save_root
+        self.mapfile_dict = None
+        self.reader_dict = None
+        self.learn_params = None
 
         # Set random state
         # TODO get seed automatically from random.org
@@ -90,6 +97,9 @@ class LearningParameters():
     '''
     A LearningParameters class for storing cntk learning parameters.
     '''
+
+    VALID_MODEL_DICT_KEYS =  ['input_var', 'label_var', 'net', 'num_classes']
+    
     def __init__(self,
                  epsilon=1e-3, # Adadelta
                  l2_reg_weight=1e-4, # CNTK L2 reg is per sample, like caffe
@@ -115,23 +125,24 @@ class LearningParameters():
     #
     def compile(self,
                 model_dict,
-                epoch_size):
+                epoch_size,
+                valid_model_dict=VALID_MODEL_DICT_KEYS):
         '''
         compile
 
         Returns a dictionary of learning parameters
         '''
         # Error check
-        valid_model_dict = ['input_var', 'label_var', 'net']
-        if model_dict not in valid_model_dict:
-            raise TypeError('Invalid model dictionary')
-        
-        if self.optimizer =='sgd':
+        for elem in model_dict.keys():
+            if elem not in valid_model_dict:
+                raise TypeError('Invalid model dictionary key ({0:s})'.format(elem))
+                 
+        if self.optimizer =='momentum_sgd':
             momentum_time_const = -self.mb_size/np.log(0.9)
             lr_per_sample  = [ lr/self.mb_size for lr in self.lr_per_mb]
-            lr_schedule = learning_rate_schedule(lr_per_sample,
-                                                 epoch_size=epoch_size,
-                                                 unit=C.UnitType.sample)
+            lr_schedule = learning_parameter_schedule(lr_per_sample,
+                                                      mb_size=self.mb_size,
+                                                      epoch_size=epoch_size)
             mm_schedule = momentum_as_time_constant_schedule(momentum_time_const)
             learner = momentum_sgd(model_dict['net'].parameters,
                                    lr_schedule,
@@ -140,17 +151,17 @@ class LearningParameters():
             # Assign output dictionary
             learn_dict = {
                 'learner': learner,
-                'lr_per_mb': lr_per_mb,
                 'lr_schedule': lr_schedule,
                 'mb_size':self.mb_size,
                 'mm_schedule': mm_schedule ,
                 'momentum_time_const':momentum_time_const,
                 'max_epochs':self.max_epochs
             }
-            
+        elif self.optimizer == 'sgd':
+            raise NotImplemented('Section not complete')
         else:
             #TODO - complete this section
-            raise RuntimeError('Section not complete')
+            raise NotImplemented('Section not complete')
 
         return learn_dict
 
@@ -255,5 +266,3 @@ class ResNetParameters():
         self.pad = pad
         self.prefix = prefix
         self.resnet_layers = resnet_layers
-        
-        
