@@ -81,6 +81,18 @@ class DataStruct:
         self.epoch_size = df.shape[0]
 
     ##
+    def read_mapfile(self):
+        '''
+        DataStruct.read_mapfile()
+        
+        Returns a the mapfile as a Pandas dataframe 
+        '''
+
+        df, _, _ = mapfile_utils.read(self.mapfile)
+
+        return df
+    
+    ##
     def compute_mean(self,
                      savepath=None,
                      filename=None,
@@ -90,12 +102,12 @@ class DataStruct:
                      nargout=False):
         '''
         DataStruct.compute_mean()
-        
+
         Computes the mean image and RGB pixel values
         for a given mapfile and saves a PNG and OpenCV
         XML file of the mean image.
 
-        Optional: Returns the mean image as an RGB numpy array.     
+        Optional: Returns the mean image as an RGB numpy array.
         '''
         # Set savepath
         if savepath is None:
@@ -127,20 +139,21 @@ class DataStruct:
 
             # Normalize image
             image_mean = img_utils.to_float(image_mean)
+            
             return image_mean
 
     ##
-    def partition(self,
-                  k_fold=5,
-                  savepath='',
-                  held_out_frac=0.1,
-                  held_out_n=100,
-                  random_state=1):
+    def cvpartition(self,
+                    k_fold=5,
+                    savepath='',
+                    held_out_frac=0.1,
+                    held_out_n=100,
+                    random_state=1):
         '''
-        DataStruct.partition()
+        DataStruct.cvpartition()
 
         Partitions a mapfile into a training and held-out test
-        data set. Splits the training data set into k-fold for 
+        data set. The training data set is split into k-fold for
         cross-validation.
 
         '''
@@ -155,7 +168,7 @@ class DataStruct:
         # Set
 
         return df
-        
+
     ##
     def create_reader(self,
                       transform_params,
@@ -169,7 +182,7 @@ class DataStruct:
                       allowed_readers=READERS):
         '''
         DataStruct.create_reader(TransformParams)
-        
+
         Creates CNTK Minibatch Source readers for training
         and testing mapfiles.
         '''
@@ -210,7 +223,7 @@ class DataStruct:
         valid_class = ResNetParameters().__class__
         if (model_parameters and isinstance(model_parameters, valid_class)):
             valid_model_params = ResNetParameters()
-            
+
             for elem in model_parameters.__dict__:
                 if elem not in valid_model_params.__dict__.keys():
                     raise TypeError('Invalid model parameter')
@@ -238,7 +251,7 @@ class DataStruct:
     def train_model(self):
         '''
         DataStruct.train_model()
-        
+
         Returns the trained network and a history of the
         training accuracy/ loss and validation accuracy.
         '''
@@ -254,7 +267,7 @@ class DataStruct:
                                        num_channels=self.num_channels,
                                        scaling_factor=self.scaling_factor,
                                        use_mean_image=self.use_mean_image)
-                
+
         else:
             # Check model keys
             valid_model_dict = ['input_var', 'label_var',
@@ -278,7 +291,7 @@ class DataStruct:
                                         tb_freq=self.tb_freq,
                                         test_epoch_size=self.test_epoch_size,
                                         extra_aug=self.extra_aug)
-        
+
         return net, training_hx
 
     ##
@@ -286,7 +299,7 @@ class DataStruct:
         '''
         DataStruct.extract_features()
 
-        Returns 
+        Returns
         '''
         df = 1
         #TODO return a df with filenames, labels, and features
@@ -315,7 +328,7 @@ class DataStruct:
 
         Return a plotting object to visualize the phenotypic
         profiling results using holoviews or Plotly as a backend.
-        
+
         '''
         # Load sample dataset for debugging
         if self.debug_mode:
