@@ -26,9 +26,7 @@ import pandas as pd
 
 # cell_decoder imports
 import cell_decoder as c_decoder
-
-# Third-party imports
-from sklearn.model_selection import StratifiedKFold
+from cell_decoder.utils import ml_utils
 
 
 # Set root dir
@@ -102,7 +100,7 @@ def read(mapfile,
 ##
 def save(mapfile=None,
          df=None,
-         save_filename,
+#         save_filename,
          savepath=root_dir,
          sep='\t',
          header=False,
@@ -231,7 +229,8 @@ def check_images(df=None,
             or mapfile is not None), \
             'A Pandas Dataframe or mapfile are required!'
     assert (frac_sample > 0 and frac_sample <1), \
-        ValueError('Sampling fraction must be in the range ({0:0.2f},{1:0.2f})!'.format(0,1))
+        ValueError('Sampling fraction must be' + \
+                   ' in the range ({0:0.2f},{1:0.2f})!'.format(0,1))
 
     # Read mapfile
     if isinstance(df, pd.DataFrame) is None:
@@ -331,12 +330,14 @@ def summarize(df=None,
     '''
     summarize()
 
-    Accepts a Pandas DataFrame or filepath to a mapfile and summarizes
-    the count and percentage of each class in the dataset.
+    Accepts a Pandas DataFrame or filepath to a mapfile and
+    summarizes the count and percentage of each class in the
+    dataset.
     '''
     assert (isinstance(df, pd.DataFrame) or mapfile is not None), \
         'A Pandas Dataframe or valid filepath to a mapfile are required!'
 
+    # Read mapfile, if necessary
     if df is None:
         group_label = 'label'
         df, _, _ = read(mapfile)
@@ -358,13 +359,14 @@ def summarize(df=None,
     return df_out
 
 ##
-def crossval(mapfile=None,
-             df=None,
-             k_fold=10,
+def crossval(df=None,
              held_out_test=50,
-             save_root=root_dir,
+             k_fold=10,
+             mapfile=None,
+             method='skf',
+             random_seed=None,
              save=True,
-             random_seed=None):
+             save_root=root_dir):
     '''
     df_train, df_held_out = crossval()
 
@@ -375,23 +377,23 @@ def crossval(mapfile=None,
 
     Returns a df_train (training + cross-validation) and df_held_out.
     '''
+    
+    # Read mapfile or get df
     if mapfile is None:
         assert isinstance(df, pd.DataFrame), \
             'df must be a Pandas DataFrame!'
     elif df is None:
         assert (isinstance(mapfile, str) and os.path.isfile(mapfile)), \
             'Mapfile must be a valid file!'
-    else:
-        raise ValueError('A valid mapfile or Pandas dataframe is required!')
-
-    # Read mapfile or get df
-    if df is None:
         df, mapfile_root, _ = read(mapfile)
         save_root = mapfile_root
+    else:
+        raise ValueError('A valid mapfile or Pandas dataframe is required!')      
 
     # Separate a held-out test set
     if held_out_test > 0 and held_out_test < 1:
-        # Set aside a percent of each class as a held-out test
+        # Assume held_out_test is a fraction.
+        # Set aside a fraction of each class as a held-out test
         df, df_held_out = sample(df=df,
                                  n_sample=None,
                                  frac=held_out_test,
@@ -399,6 +401,7 @@ def crossval(mapfile=None,
                                  replace=False)
 
     elif held_out_test > 0:
+        # Assume literal N samples to hold out per class
         # Set aside a fixed number of each class as a held-out test
         df_summary = summarize(df=df)
 
@@ -406,67 +409,78 @@ def crossval(mapfile=None,
         if df_summary['count'].min() <= held_out_test:
             held_out_test = np.floor(df_summary['count'].min()/2).astype(int)
 
+        # Sample df by group
         df, df_held_out = sample(df=df,
                                  n_sample=held_out_test,
                                  frac=None,
                                  grouped=True,
                                  replace=False)
 
-        # Adjust k_fold based on class number
+        # Adjust k_fold based on min class number
         df_summary = summarize(df=df)
+        
         if df_summary['count'].min() < k_fold:
             min_idx = np.argmin(df_summary['count'])
+            k_fold = df_summary['count'].min()
+            
             print_text = 'Class {0:d} has too few examples ({1:d})' + \
                          'for {2:d} fold cross-validation!\nUsing {1:d}' +\
                          ' fold cross-validation instead!'
             print(print_text.format(df_summary['label'].ix[min_idx],
                                     df_summary['count'].ix[min_idx],
                                     k_fold))
-            k_fold = df_summary['count'].min()
-
+            
     else:
+        # No held-out test
         df_held_out = None
 
-    # Setup stratified k fold (SKF) cross validation.
-    #TODO update for recent scipy skf
-    skf = StratifiedKFold(n_splits=k_fold,
-                          shuffle=True,
-                          random_state=random_seed)
+    # Set up cross validation
+    df = ml_utils.cv_partition(df=df,
+                               data='filepath',
+                               label='label',
+                               method=method,
+                               k_fold=k_fold,
+                               random_state=random_state)
 
-    # Pre-allocate array and dict
-    all_test_idx = np.empty((df['label'].shape[0],1), dtype=int)
-    mapfile_list = {}
-
-    # Verbose output
+    # Save output
     if save:
         print('Saving files to\n\t{0:s}'.format(save_root))
 
-    #
-    for fold, [train_idx, test_idx] in enumerate(skf.split(df['filepath'],
-                                                        df['label'])):
-        # Save train and test filepaths and labels in a csv
-        save_filename = '{0:d}_all-cells_train_mapfile.tsv'
-        save_filepath = os.path.join(save_root,
-                                     save_filename.format(fold))
+        # Save mapfiles
+        save_filename = '{0:02d}_train_mapfile.tsv'
+        save_filepath = os.path.join(save_root, save_filename)    
+        train_mapfile_list = [elem.format(fold) for fold, elem in zip(range(0, k_fold)), [save_filepath]*k_fold]
+        test_mapfile_list = [elem.replace('train', 'test') for elem in train_mapfile_list]
 
-        # Assign test index, all other examples used in training
-        all_test_idx[test_idx] = fold
-
-        # Save train/ test folds as individual files
-        if save:
-            df.ix[train_idx].to_csv(save_filepath)
-            df.ix[test_idx].to_csv(save_filepath.replace('train','validation'))
-
-    # Merge test idx with original df
-    df = df.join(pd.DataFrame(all_test_idx, columns={'validation_fold'}))
-
-    # Save train and held-out
-    if save:
-        df.to_csv(save_filepath.replace('train','all_train-val'), sep='\t')
-
+        # 
+        for fold, test_df in df.groupby('validation_fold'):
+            test_ix = test_df.index
+            train_ix = np.setdiff1d(df.index, test_ix)
+            
+            # Get train df
+            train_df = df.ix[train_ix]
+            
+            # write csv
+            train_df.to_csv(save_filepath.format(fold),
+                            sep='\t', header=False,
+                            index=False)
+            test_df.to_csv(save_filepath.replace('train','test').format(fold),
+                           sep='\t', header=False,
+                           index=False)
+        
+        # Save train and held-out
+        df.to_csv(save_filepath.replace('train','all_train-val'), sep='\t',
+                  header=False, index=False)
+            
         if df_held_out is not None:
-            df.to_csv(save_filepath.replace('train','held-out-test'), sep='\t')
+            df_held_out.to_csv(save_filepath.replace('train','held-out-test'),
+                               sep='\t', header=False, index=False)
 
-    return df, df_held_out
+    else:
+        train_mapfile_list = None
+        test_mapfile_list = None
+
+    return {'train':train_mapfile_list,
+            'test':test_mapfile_list}
 
 ## TODO coordinate text labels and mapfile labels
