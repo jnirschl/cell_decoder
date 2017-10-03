@@ -75,15 +75,16 @@ class DataStruct:
                                                             frac_sample=frac_sample)
 
         # Update instance attributes
+        self.mapfile = mapfile
         self.num_classes = int(df['label'].max() + 1)
         self.mapfile_root = mapfile_root
         self.mapfile_name = mapfile_name
         self.epoch_size = df.shape[0]
 
     ##
-    def read_mapfile(self):
+    def read(self):
         '''
-        DataStruct.read_mapfile()
+        DataStruct.read()
         
         Returns a the mapfile as a Pandas dataframe 
         '''

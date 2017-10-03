@@ -15,20 +15,22 @@
 '''
 
 # Standard library imports
+import numpy as np
+import pandas as pd
 
 
 # Third part imports
 from sklearn.model_selection import StratifiedKFold
 
 ## 
-def cv_parttion(df=None,
-                data='filepath'
-                label='label',
-                method='skf',
-                k_fold=10,
-                random_seed=None):
+def cv_partition(df=None,
+                 data='filepath',
+                 label='label',
+                 method='skf',
+                 k_fold=10,
+                 random_seed=None):
     '''
-    df_train, df_held_out = crossval()
+    df_train, df_held_out = cv_partition()
 
     Accepts a Pandas DataFrame and partitions a trainin dataset into
     k-folds for cross validation.
@@ -47,11 +49,11 @@ def cv_parttion(df=None,
                               random_state=random_seed)
                
         # Pre-allocate array
-        all_test_idx = np.empty((df[grou_label].shape[0], 1), dtype=int)
+        all_test_idx = np.empty((df[label].shape[0], 1), dtype=int)
         
-        for fold, [train_i, test_i] in enumerate(skf.split(df[data], df[label])):
+        for fold, [train_ix, test_ix] in enumerate(skf.split(df[data], df[label])):
             # Assign test index, all other examples used in training
-            all_test_idx[test_idx] = fold
+            all_test_idx[test_ix] = fold
 
     elif method.lower() == '.632bootstrap':
         raise RuntimeError('The {0:s} method is not complete!'.format(method))
