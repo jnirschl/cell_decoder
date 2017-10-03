@@ -35,7 +35,7 @@ from cell_decoder.readers import default_reader, microscopy_reader
 from cell_decoder.visualize import plot
 
 # Set root dir
-root_dir = os.path.join(os.path.dirname(c_decoder.__file__))
+ROOT_DIR = os.path.join(os.path.dirname(c_decoder.__file__))
 
 
 ## Create a data_struct class
@@ -48,7 +48,7 @@ class DataStruct:
     '''
     # Class attributes
     RESNET_LAYERS = [18, 34, 50, 101, 152]
-    READERS = ['default','microscopy']
+    IMAGE_READERS = ['default', 'microscopy']
     VALID_MAPFILE_DICT_KEYS = ['train', 'validation', 'test']
     VALID_READER_DICT_KEYS = VALID_MAPFILE_DICT_KEYS
     VALID_MODEL_DICT_KEYS = ['input_var', 'label_var', 'net', 'num_classes']
@@ -103,7 +103,7 @@ class DataStruct:
 
     ##
     def compute_image_mean(self,
-                           savepath=os.path.join(root_dir, 'meanfiles'),
+                           savepath=os.path.join(ROOT_DIR, 'meanfiles'),
                            filename=None,
                            data_aug=True,
                            debug_mode=True,
@@ -120,7 +120,7 @@ class DataStruct:
         '''
         # Set savepath
         if savepath is None:
-            savepath = os.path.join(root_dir,'meanfiles')
+            savepath = os.path.join(ROOT_DIR, 'meanfiles')
             savepath = os.path.normpath(savepath)
 
         # Set filename
@@ -135,7 +135,7 @@ class DataStruct:
 
         # Store path to mean image xml, png
         self.image_mean_filepath = os.path.join(savepath,
-                                                filename.replace('.png','.xml'))
+                                                filename.replace('.png', '.xml'))
 
         # Store mean pixel values (BGR)
         self.pixel_mean = np.mean(np.mean(image_mean, axis=0), axis=0)
@@ -153,7 +153,7 @@ class DataStruct:
     ##
     def partition(self,
                   k_fold=5,
-                  savepath=os.path.join(root_dir, 'mapfiles'),
+                  savepath=os.path.join(ROOT_DIR, 'mapfiles'),
                   held_out_test=0.05,
                   random_seed=None):
         '''
@@ -187,9 +187,9 @@ class DataStruct:
                       random_seed=None,
                       mapfile_dict=None,
                       reader='default',
-                      savepath=os.path.join(root_dir, 'mapfiles'),
+                      savepath=os.path.join(ROOT_DIR, 'mapfiles'),
                       k_fold=5,
-                      allowed_readers=READERS,
+                      allowed_readers=IMAGE_READERS,
                       valid_mapfile_dict=VALID_MAPFILE_DICT_KEYS):
         '''
         DataStruct.create_reader(TransformParams)
@@ -221,11 +221,11 @@ class DataStruct:
                                      random_seed=None)
         else:
             # TODO Check mapfile dict keys
-             # Check model keys
+            # Check model keys
             for elem in self.mapfile_dict.keys():
                 if elem not in valid_mapfile_dict:
                     raise TypeError('Invalid mapfile dictionary key ({0:s})'.format(elem))
-                        
+
             # If exist, assign to mapfile_dict
             mapfile_dict = self.mapfile_dict
 
@@ -244,8 +244,8 @@ class DataStruct:
         train_list = []
         valid_list = []
         for fold, (train_map, valid_map) in enumerate(zip(mapfile_dict['train'],
-                                        mapfile_dict['validation'])):
-            if reader.lower()=='default':
+                                                          mapfile_dict['validation'])):
+            if reader.lower() == 'default':
                 train_reader = default_reader.image(train_map,
                                                     transform_params,
                                                     num_classes=self.num_classes,
@@ -255,7 +255,7 @@ class DataStruct:
                                                     mean_filepath=self.image_mean_filepath,
                                                     is_training=True,
                                                     use_mean_image=self.use_mean_image,
-                                                    verbose=(fold==0))
+                                                    verbose=(fold == 0))
 
                 valid_reader = default_reader.image(valid_map,
                                                     transform_params,
@@ -284,15 +284,15 @@ class DataStruct:
             test_list = []
             for test_map in mapfile_dict['test']:
                 test_reader = default_reader.image(test_map,
-                                                 transform_params,
-                                                 num_classes=self.num_classes,
-                                                 num_channels=self.num_channels,
-                                                 height=self.image_height,
-                                                 width=self.image_width,
-                                                 mean_filepath=self.image_mean_filepath,
-                                                 is_training=False,
-                                                 use_mean_image=self.use_mean_image,
-                                                 verbose=False)
+                                                   transform_params,
+                                                   num_classes=self.num_classes,
+                                                   num_channels=self.num_channels,
+                                                   height=self.image_height,
+                                                   width=self.image_width,
+                                                   mean_filepath=self.image_mean_filepath,
+                                                   is_training=False,
+                                                   use_mean_image=self.use_mean_image,
+                                                   verbose=False)
                 # Append list
                 test_list.append(test_reader)
 
@@ -358,15 +358,20 @@ class DataStruct:
                     model_dict=None,
                     reader_dict=None,
                     learn_params=None,
+                    max_epochs=100,
+                    mb_size=64,
                     valid_model_dict=VALID_MODEL_DICT_KEYS,
                     valid_reader_dict=VALID_READER_DICT_KEYS,
-                    verbose=False):
+                    verbose=True):
         '''
         DataStruct.train_model()
 
         Returns the trained network and a history of the
         training accuracy/ loss and validation accuracy.
         '''
+        if self.debug_mode:
+            max_epochs = 2
+        
         # Override self.reader_dict if given as kwarg
         if reader_dict is not None:
             print('Input reader_dict will override any existing values.')
@@ -380,7 +385,7 @@ class DataStruct:
                                         mapfile_dict=None,
                                         random_seed=None,
                                         reader='default',
-                                        savepath=os.path.join(root_dir, 'mapfiles'),
+                                        savepath=os.path.join(ROOT_DIR, 'mapfiles'),
                                         transform_params=TransformParameters())
 
         else:
@@ -388,14 +393,14 @@ class DataStruct:
             for elem in self.reader_dict.keys():
                 if elem not in valid_reader_dict:
                     raise TypeError('Invalid reader dictionary key ({0:s})'.format(elem))
-            
+
             # If exists, assign to reader_dict
             reader_dict = self.reader_dict
 
         # Override self.model_dict if given as kwarg
         if model_dict is not None:
-             print('Input model_dict will override any existing values.')
-             self.model_dict = model_dict
+            print('Input model_dict will override any existing values.')
+            self.model_dict = model_dict
 
         # Create model_dict if none exists
         if self.model_dict is None:
@@ -418,40 +423,62 @@ class DataStruct:
 
             model_dict = self.model_dict
 
-
         # Create and compile learn_params if none exists
         if learn_params is None:
             print('Using default learning parameters.')
-            
+
             learn_params = []
             for fold in  reader_dict['train']:
-                train_learn = LearningParameters()
+                train_learn = LearningParameters(max_epochs=max_epochs,
+                                                 mb_size=mb_size)
                 learn_dict = train_learn.compile(model_dict, fold['epoch_size'])
                 learn_params.append(learn_dict)
+
+        # Allocate output vars
+        training_summary = {'model_path':[],
+                            'train_df':[] }
         
         # Train models using cross-validation
-        training_history = []
         for fold, (r_train, r_valid) in enumerate(zip(reader_dict['train'],
                                                       reader_dict['validation'])):
             if verbose:
-                print('Training fold {0:02d}',format(fold))
-            
-            # Call model training subfunction
-            net, training_hx = models.train(model_dict,
-                                            r_train['mb_source'],
-                                            r_train['epoch_size'],
-                                            learn_params[fold],
-                                            reader_valid=r_valid['mb_source'],
-                                            valid_epoch_size=r_valid['epoch_size'],
-                                            debug_mode=self.debug_mode,
-                                            gpu=self.gpu,
-                                            model_save_root=self.model_save_root,
-                                            profiler_dir=self.profiler_dir,
-                                            tb_log_dir=self.tb_log_dir,
-                                            tb_freq=self.tb_freq,
-                                            extra_aug=True)
+                print('Training fold {0:02d}'.format(fold))
 
-        return net, training_hx
+            # Call model training subfunction
+            model_path, train_df = models.train(model_dict,
+                                                r_train['mb_source'],
+                                                r_train['epoch_size'],
+                                                learn_params[fold],
+                                                reader_valid=r_valid['mb_source'],
+                                                valid_epoch_size=r_valid['epoch_size'],
+                                                debug_mode=self.debug_mode,
+                                                gpu=self.gpu,
+                                                model_save_root=self.model_save_root,
+                                                profiler_dir=self.profiler_dir,
+                                                tb_log_dir=self.tb_log_dir,
+                                                tb_freq=self.tb_freq,
+                                                extra_aug=True)
+
+            # Save to output dictionary
+            training_summary['model_path'].append(model_path)
+            training_summary['train_df'].append(train_df)        
+
+            print(20*'-' + '\n')
+
+        print('Training complete!')
+
+        # Add column for training fold and append dataframes
+        output = pd.DataFrame()
+        for fold, df in enumerate(training_summary['train_df']):
+            df = df.join(pd.DataFrame(fold*np.ones((df.shape[0],1), dtype=int),
+                                      columns={'fold'}) )
+            output = output.append(df) #  ignore_index=True
+
+        
+        training_summary['train_df'] = output['train_loss', 'train_error',
+                                              'test_error']
+            
+        return training_summary
 
     ##
     def extract_features(self):
@@ -491,10 +518,10 @@ class DataStruct:
         '''
         # Load sample dataset for debugging
         if self.debug_mode:
-            root_dir = os.path.join(os.path.dirname(c_decode.__file__),
+            ROOT_DIR = os.path.join(os.path.dirname(c_decode.__file__),
                                     '/data/profiling/cells')
             filename = 'Res50_81_cells_mapped.tsv'
-            filepath = os.path.join(root_dir, filename)
+            filepath = os.path.join(ROOT_DIR, filename)
             df = pd.read_csv(filepath, sep='\t', header=True)
         else:
             raise NotImplemented('This section is not complete!')
@@ -534,7 +561,7 @@ class DataStruct:
 
     ##
     def save(self,
-             savepath=root_dir):
+             savepath=ROOT_DIR):
         '''
         DataStruct.save()
 

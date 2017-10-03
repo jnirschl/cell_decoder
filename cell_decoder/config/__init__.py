@@ -49,7 +49,7 @@ class DataStructParameters():
                  tb_log_dir='C:/TensorBoard_logs/cntk',
                  text_labels=None,
                  use_mean_image=False):
-                 
+
         # Input mapfile, partition into train/ valid/ test later
         if mapfile:
             self.mapfile = mapfile
@@ -96,9 +96,9 @@ class LearningParameters():
     '''
     A LearningParameters class for storing cntk learning parameters.
     '''
-    
+
     VALID_MODEL_DICT_KEYS =  ['input_var', 'label_var', 'net', 'num_classes']
-    
+
     def __init__(self,
                  epsilon=1e-3, # Adadelta
                  l2_reg_weight=1e-4, # CNTK L2 reg is per sample, like caffe
@@ -118,7 +118,7 @@ class LearningParameters():
             self.learning_rate = [elem for sub_list in learning_rate for elem in sub_list ]
         else:
             self.learning_rate = learning_rate
-            
+
         self.loss_fn = loss_fn
         self.max_epochs = int(max_epochs)
         self.mb_size = int(mb_size)
@@ -128,11 +128,11 @@ class LearningParameters():
             self.momentum = [elem for sub_list in momentum for elem in sub_list ]
         else:
             self.momentum = momentum
-            
+
         self.momentum_time_const = momentum_time_const
         self.optimizer = optimizer
         self.rho = rho
-    
+
     #
     def compile(self,
                 model_dict,
@@ -147,7 +147,7 @@ class LearningParameters():
         for elem in model_dict.keys():
             if elem not in valid_model_dict:
                 raise TypeError('Invalid model dictionary key ({0:s})'.format(elem))
-                 
+
         if self.optimizer =='momentum_sgd':
 #            momentum_time_const = -self.mb_size/np.log(0.9)
 #            lr_per_sample  = [ lr/self.mb_size for lr in self.lr_per_mb]
@@ -180,7 +180,6 @@ class LearningParameters():
             raise NotImplemented('Section not complete')
 
         return learn_dict
-
 
 
 ## Transform parameter class
@@ -268,7 +267,7 @@ class ResNetParameters():
 
         # Look up resnet num_stack_layers from class dict
         num_stack_layers = num_stack_layers[resnet_layers]
-            
+
         # Update instance attributes
         self.bias = bias
         self.bn_time_const = bn_time_const

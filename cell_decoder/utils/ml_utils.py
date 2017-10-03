@@ -41,6 +41,9 @@ def cv_partition(df=None,
     if method not in VALID_METHODS:
         raise ValueError('Invalid method {0:s}!'.format(method))
 
+    # Shuffle the dataframe in place
+    df = df.sample(frac=1).reset_index(drop=True) #TODO check
+    
     # Process cross validation given method
     if method.lower() == 'skf':
         # Setup stratified k fold (SKF) cross validation.

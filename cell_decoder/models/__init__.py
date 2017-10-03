@@ -93,7 +93,7 @@ def create(model_parameters,
     #
     if num_classes is None:
         num_classes = len(df['labels'].unique())
-        
+
     # Assign vars from model_params
     bias = model_parameters.bias
     bn_time_const = model_parameters.bn_time_const
@@ -116,14 +116,17 @@ def create(model_parameters,
     # The pixel mean is subtracted in the model. The mean image
     # is subtracted while creating the mb_source (e.g. in ImageDeserializer)
     if use_mean_image:
-        input_var = C.ops.minus(input_var,
+        input_sub = C.ops.minus(input_var,
                                 C.ops.constant(pixel_mean),
                                 name="input_mean_sub")
-
-    # Scale 8 bit image to 0-1
-    input_var = C.ops.element_times(input_var,
-                                    C.ops.constant(scaling_factor),
-                                    name="input_mean_sub_scaled")
+        input_scaled = C.ops.element_times(input_var,
+                                           C.ops.constant(scaling_factor),
+                                           name="input_mean_sub_scaled")
+    else:
+        # Scale 8 bit image to 0-1
+        input_scaled = C.ops.element_times(input_var,
+                                        C.ops.constant(scaling_factor),
+                                        name="input_scaled")
 
     # Set num_classes
     label_var = C.input_variable( num_classes )
@@ -193,7 +196,7 @@ def train(model_dict,
     # Set debug opts
     if debug_mode:
         print('Debug mode enabled.\n')
-        train_epoch_size = 1
+        train_epoch_size = learn_params['mb_size']
         set_computation_network_trace_level(0)
         set_fixed_random_seed(260732) # random number from random.org
 
@@ -255,14 +258,18 @@ def train(model_dict,
 
     # Train over (0, max_epochs)
     cumulative_count = 0
-    training_history = {'batch_index':[],
-                        'avg_loss':[],
-                        'avg_error':[]}
-    
-    for epoch in range(learn_params['max_epochs']):
-        sample_count = 0 #   running_loss = []
+    train_hx = {'sample_count':[], 'mb_index':[], 'epoch_index':[],
+                'train_loss':[], 'train_error':[],
+                'test_error':[]}
 
-        # Train over minibatches in epoch
+    # Set cumulative minibatch count
+    mb_count = 0
+    for epoch in range(learn_params['max_epochs']):
+        # Reset sample_count and epoch fraction each epoch
+        sample_count = 0
+        epoch_fraction = 0
+
+        # Train over all minibatches in epoch
         while sample_count < train_epoch_size:  # loop over minibatches in the epoch
             # Get next mb
             data = reader_train.next_minibatch(min(mb_size,
@@ -282,30 +289,33 @@ def train(model_dict,
             # Update model
             trainer.train_minibatch(data)
 
-            # Update count
-            sample_count += trainer.previous_minibatch_sample_count # n samples seen
-            cumulative_count += sample_count
+            # Store training history
+            train_hx['sample_count'].append(cumulative_count)
+            train_hx['epoch_index'].append(epoch_fraction)
+            train_hx['mb_index'].append(mb_count)
+            train_hx['train_loss'].append(trainer.previous_minibatch_loss_average)
+            train_hx['train_error'].append(trainer.previous_minibatch_evaluation_average)
+            train_hx['test_error'].append(np.nan)
 
-            # For visualization...            
-            training_history['batch_index'].append(batch_index)
-            training_history['batch_index'].append(batch_index)
-            training_history['avg_loss'].append(trainer.previous_minibatch_loss_average)
-            training_history['avg_error'].append(trainer.previous_minibatch_evaluation_average)
+            # Update counts
+            mb_count += 1
+            cumulative_count += sample_count
+            epoch_fraction = np.divide(sample_count, train_epoch_size)
+            sample_count += trainer.previous_minibatch_sample_count
+
 
         # Summarize training at the end of each epoch
         trainer.summarize_training_progress()
 
-#        # Store previous loss
-#        running_loss.append(trainer.previous_minibatch_loss_average)
-
         # Evaluate test set accuracy
-        if reader_valid and valid_epoch_size and epoch > 0:
+        if False and reader_valid and valid_epoch_size and epoch > 0:
             test_accuracy = evaluate_model.start(trainer,
                                                  input_map,
                                                  label_var,
                                                  reader_valid,
                                                  valid_epoch_size,
                                                  mb_size)
+            train_hx['test_error'].append(test_accuracy)
 
             # Log average test set loss and prediction errror.
             if tensorboard_writer:
@@ -313,21 +323,24 @@ def train(model_dict,
                                                test_accuracy,
                                                epoch)
 
-
-
         if model_save_root:
             checkpoint_name = network_name + "_chkpt_{0}.dnn".format(epoch)
-            trainer.save_checkpoint(os.path.join(model_save_root,
-                                                 checkpoint_name))
+            checkpoint_filepath = os.path.join(model_save_root, checkpoint_name)
+            trainer.save_checkpoint(checkpoint_filepath)
+        else:
+            checkpoint_filepath = None
 
         # Begin collecting profiler data after the first epoch
-        enable_profiler() 
+        enable_profiler()
 
     # Stop profiler at the end of training, if enabled
     if profiler_dir:
         stop_profiler()
 
-    return net, history
+    # Convert train_hx to df and assign output
+    train_hx_df = pd.DataFrame(train_hx)
+
+    return checkpoint_filepath, train_hx_df
 
 ##
 def clone():
@@ -364,14 +377,14 @@ def print_model(trained_model):
     else:
         #TODO assert trained_model
         1
-        
+
     # Get node outputs
     node_outputs = get_node_outputs(trained_model)
 
     # Print
     for layer in node_outputs:
         print("  {0} {1}".format(layer.name, layer.shape))
-    
+
 ##
 def evaluate(net, # model_dict
              mapfile,
@@ -389,7 +402,7 @@ def evaluate(net, # model_dict
     # Load mapfile into df
     if df:
         assert isinstance(df, pd.DataFrame), \
-        'A Pandas Dataframe is required!'
+            'A Pandas Dataframe is required!'
     elif mapfile:
         assert os.path.isfile(mapfile), \
             'Mapfile {0:s} does not exist!'.format(mapfile)
@@ -495,10 +508,10 @@ def evaluate(net, # model_dict
     # print output if label given
     if label and sample_count==1:
         print('Predicted label:\t{:d}\nProbability:\t\t{:0.3f}\nTrue label:\t\t{:d}'.format(np.argmax(prob),
-                                                                          prob[np.argmax(prob)],
-                                                                          label))
+                                                                                            prob[np.argmax(prob)],
+                                                                                            label))
     else:
-         print("Processed {0} samples ({1:.2%} correct)".format(sample_count,accuracy))
+        print("Processed {0} samples ({1:.2%} correct)".format(sample_count,accuracy))
 
     # create dataframe with compiled_results
     compiled_results = {
@@ -509,7 +522,8 @@ def evaluate(net, # model_dict
     df = pd.DataFrame(compiled_results,
                       columns=['Y_hat','Prob', 'GT'])
     # Save to csv
-    df.to_csv(output_filepath)
+    if save:
+        df.to_csv(output_filepath)
 
     return df, accuracy
 
@@ -524,22 +538,22 @@ def find_recent(model_directory,
     '''
     assert os.path.isdir(model_save_dir), \
         ('Model must be a valid directory!')
-    
+
     saved_models = glob.glob(os.path.normpath(os.path.join(model_save_dir,
-                                                           filter_spec))) 
+                                                           filter_spec)))
     saved_models = [os.path.basename(elem) for elem in saved_models]
     model_num = []
     for elem in saved_models:
         model_num.append(int(re.split('_', elem)[-1].split(".")[0]))
-        
+
     full_path = os.path.normpath(os.path.join(model_save_dir,
                                               saved_models[np.argmax(model_num)]))
     model_path = os.path.split(full_path)[0]
     model_name = os.path.split(full_path)[1]
-    
+
     if os.path.isfile(os.path.join(model_path, model_name)):
         print("Found model {}".format(model_name))
     else:
         print("No models found in directory:\n{}".format(model_save_dir))
-        
+
     return model_path, model_name
