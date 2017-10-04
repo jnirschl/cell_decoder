@@ -597,14 +597,15 @@ class DataStruct:
             
         reader_train =  reader_dict[partition][fold]['mb_source']
         input_map = {
-            input_var: reader_train.streams.features,
-            label_var: reader_train.streams.labels
+            'features': reader_train.streams.features,
+            'labels': reader_train.streams.labels
         }
         
         data = reader_train.next_minibatch(num_samples,
                                            input_map=input_map)
 
-        return reader_train, data
+        return data
+
     ##
     def save(self,
              savepath=ROOT_DIR):
