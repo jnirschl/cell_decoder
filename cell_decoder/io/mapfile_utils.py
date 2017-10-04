@@ -200,19 +200,54 @@ def prepend_filepath(mapfile,
                 df.to_csv(mapfile, sep='\t', header=None, index=False)
             elif file_ext =='.csv':
                 df.to_csv(mapfile, sep=',', header=None, index=False)
+                
+        else:
+            mapfile = mapfile.replace(file_ext, 'copy' + file_ext)
+            if file_ext =='.tsv':
+                df.to_csv(mapfile, sep='\t', header=None, index=False)
+            elif file_ext =='.csv':
+                df.to_csv(mapfile, sep=',', header=None, index=False)
 
     return df, mapfile
 
 ##
-def append(mapfile):
+def append(mapfile_1,
+           mapfile_2,
+           savepath=root_dir,
+           overwrite=True):
     '''
-    append()
+    append(mapfile_1, mapfile_2)
 
     '''
-    #TODO finish function
-    mapfile = 1
+    # Read mapfiles
+    df_1, root_1, name_1 = read(mapfile_1)
+    df_2, root_2, name_2 = read(mapfile_2)
+    
+    # Save file_ext
+    file_ext = os.path.splitext(name_1)[1]
+    
+    # Offset labels in df_2 by the max in df_1
+    label_offset = df_1['label'].max() + 1
+    df_2['label'] = df_2['label'] + label_offset
 
-    return df
+    # Append DataFrames
+    df_1 = df_1.append(df_2, ignore_index=True)
+    
+    # Create new mapfile name
+    combined_name = os.path.splitext(name_1)[0].replace('_mapfile','') + '_' +\
+                    os.path.splitext(name_2)[0].replace('_mapfile','') + \
+                    '_mapfile' + file_ext
+    combined_mapfile = os.path.join(root_1, combined_name)
+
+    # Save combined mapfile
+    print('Saving "{0:s}" to directory:\n\t{1:s}'.format(combined_name, root_1))
+    
+    if file_ext =='.tsv':
+        df_1.to_csv(combined_mapfile, sep='\t', header=None, index=False)
+    elif file_ext =='.csv':
+        df_1.to_csv(combined_mapfile, sep=',', header=None, index=False)
+
+    return df_1
 
 ##
 def check_images(df=None,
@@ -277,7 +312,7 @@ def sample(mapfile=None,
 
     Returns df_superset (df original less sampling) and df_subset.
     '''
-    assert (isinstance(df, pd.DataFrame) or mapfile is not None), \
+    assert (isinstance(df, pd.DataFrame) or (mapfile is not None)), \
         ValueError('A Pandas Dataframe or mapfile are required!')
 
     # Read mapfile

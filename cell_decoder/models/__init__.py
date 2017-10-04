@@ -45,7 +45,7 @@ from cell_decoder.config import DataStructParameters, LearningParameters, ResNet
 from cell_decoder.io import mapfile_utils
 from cell_decoder.models import resnet_deep, resnet_shallow
 from cell_decoder.readers import default_reader, microscopy_reader
-from cntk.logging import log_number_of_parameters, ProgressPrinter
+from cntk.logging import log_number_of_parameters, ProgressPrinter, TraceLevel, set_trace_level
 from cntk.logging.graph import find_by_name, get_node_outputs
 from cntk.logging.progress_print import TensorBoardProgressWriter
 from cntk.losses import cross_entropy_with_softmax
@@ -165,6 +165,8 @@ def train(model_dict,
           model_save_root=None,
           profiler_dir=None,
           reader_valid=None,
+          rgb_mean=25,
+          rgb_std=5,
           tb_freq=10,
           tb_log_dir='C:/TensorBoard_logs/cntk',
           top_n=1,
@@ -182,14 +184,20 @@ def train(model_dict,
         if elem not in valid_model_dict:
             raise TypeError('Invalid model dictionary')
 
-    # Set device
+    # Set training device
     if gpu:
-        C.device.try_set_default_device(C.device.gpu(0))
+        train_device = C.device.gpu(0)
+    else:
+        train_device = C.device.cpu(0)
 
-    # Set input var
+    C.device.try_set_default_device(train_device)
+    print('Device:\t{0:s}'.format(str(train_device)))
+
+    # Set vars
     input_var = model_dict['input_var']
     label_var = model_dict['label_var']
     num_classes = model_dict['num_classes']
+    n_ch, im_height, im_width = model_dict['input_var'].shape
 
     # Set network
     net = model_dict['net']
@@ -199,6 +207,7 @@ def train(model_dict,
         print('Debug mode enabled.\n')
         train_epoch_size = learn_params['mb_size']
         set_computation_network_trace_level(0)
+        set_trace_level(TraceLevel(0))
         set_fixed_random_seed(260732) # random number from random.org
 
     # Set the learning  parameters
@@ -244,8 +253,8 @@ def train(model_dict,
 
     # define mapping from reader streams to network inputs
     input_map = {
-        'features': reader_train.streams.features, #input_var
-        'labels': reader_train.streams.labels # label_var
+        input_var: reader_train.streams.features, #input_var
+        label_var: reader_train.streams.labels # label_var
     }
 
     # Print the number of parameters
@@ -259,13 +268,12 @@ def train(model_dict,
 
     # Train over (0, max_epochs)
     cumulative_count = 0
-    train_hx = {'sample_count':[], 'mb_index':[], 'epoch_index':[],
-                'train_loss':[], 'train_error':[],
-                'test_error':[]}
+    train_hx = {'sample_count':[0], 'mb_index':[0],
+                'epoch_index':[0], 'train_loss':[np.nan],
+                'train_error':[np.nan], 'test_error':[np.nan]}
 
-    # Set minibatch count and cumulative sample count
+    # Set minibatch count
     mb_count = 0
-    cumulative_count = 0
     for epoch in range(learn_params['max_epochs']):
         # Reset sample_count and epoch fraction each epoch
         sample_count = 0
@@ -280,30 +288,34 @@ def train(model_dict,
 
             # Apply additional augmentation, optional
             if extra_aug:
-                data = python_layer(data)
-                # Rotate image by 90 degrees
-                # Flip image vert and/or horiz:  0 = ud; >0 = lr; <0 = ud + lr
-                # Randomly swap channels: 'rgb'
-                # Randomly drop channels: 'rgb'
-                # Apply low-pass Gausian filter
-                # Apply additive Gaussian noise
+                data = python_layer.process_minibatch(data,
+                                                      input_var,
+                                                      label_var,
+                                                      device=train_device,
+                                                      im_height=im_height,
+                                                      im_width=im_width,
+                                                      n_ch=n_ch,
+                                                      rgb_mean=rgb_mean,
+                                                      rgb_std=rgb_std)
 
             # Update model
-            trainer.train_minibatch(data)
+            trainer.train_minibatch(data) #todo update test_minibatch?
+
+            # Update counts
+            mb_count += 1
+            epoch_fraction = np.divide(trainer.total_number_of_samples_seen,
+                                       train_epoch_size)
+            sample_count += data[label_var].num_samples
 
             # Store training history
-            train_hx['sample_count'].append(cumulative_count)
+            train_hx['sample_count'].append(trainer.total_number_of_samples_seen)
             train_hx['epoch_index'].append(epoch_fraction)
             train_hx['mb_index'].append(mb_count)
             train_hx['train_loss'].append(trainer.previous_minibatch_loss_average)
             train_hx['train_error'].append(trainer.previous_minibatch_evaluation_average)
             train_hx['test_error'].append(np.nan)
 
-            # Update counts
-            mb_count += 1
-            cumulative_count += data['labels'].num_samples # label_var
-            epoch_fraction = np.divide(sample_count, train_epoch_size)
-            sample_count += data['labels'].num_samples # label_var
+
 
             #todo consider updating count before/ after
 

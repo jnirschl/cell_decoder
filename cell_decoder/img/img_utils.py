@@ -39,38 +39,28 @@ def to_float(img):
 
 
 ##
-def apply_transform(T_img,
-                    do_rot,
-                    rot_deg,
+def apply_transform(T_im,
+                    label,
                     do_flip,
-                    flip_type,
-                    swap_ch,
+                    do_rot,
                     drop_ch,
-                    gauss_blur=True,
-                    gauss_noise=False,
+                    flip_type,
+                    gauss_blur,
+                    gauss_noise,
+                    rot_deg,
+                    swap_ch,
+                    dtype=np.uint8,
                     gauss_kernel=(9, 9),
                     gauss_sigma=3,
-                    label=1,
-                    dtype=np.uint8,
-                    transform_opts=None,
-                    valid_labels=[1]):
+                    im_height=224,
+                    im_width=224,
+                    label_xform=np.setdiff1d(range(22,44),range(36,42)),
+                    n_ch=3,
+                    stain_aug=False):
     '''
     img_utils.apply_transorm()
 
     '''
-    # Set transform opts if none given
-    if transform_opts:
-        do_rot = transform_opts
-        rot_deg = transform_opts
-        do_flip = transform_opts
-        flip_type = transform_opts
-        swap_ch = transform_opts
-        drop_ch = transform_opts
-        gauss_blur=True,
-        gauss_noise=False,
-        gauss_kernel=(9, 9),
-        gauss_sigma=3,
-    
     # Rotation
     if do_rot and rot_deg != 4:
         T_im = np.rot90(T_im, rot_deg)
@@ -80,26 +70,12 @@ def apply_transform(T_img,
         T_im = cv2.flip(T_im, flip_type)
 
     # Randomly swap channels
-    if swap_ch and label in []:
+    if swap_ch and label in label_xform:
         match_idx, diff_idx = utils.string_cmp(swap_ch.lower(), 'bgr',
                                                match_case=False)
         swap_idx = np.insert(np.random.permutation(match_idx),
                              diff_idx, diff_idx)
         T_im = T_im[:,:,swap_idx]
-
-    # Randomly drop one or more channels given a specified string
-    #  -- opencv stores images as bgr --
-    if drop_ch:
-        match_idx, diff_idx = utils.string_cmp(drop_ch, 'bgr',
-                                               match_case=False)
-
-        drop_num = np.random.randint(len(match_idx)+1)
-
-        drop_idx = np.random.choice(match_idx,
-                                    size=drop_num,
-                                    replace=False)
-        for idx in drop_idx:
-            T_im[:,:,idx] = np.zeros_like((T_img[:,:,0]))
 
     # Apply low-pass gaussian filter
     if gauss_blur:
@@ -108,11 +84,24 @@ def apply_transform(T_img,
     # Additive Gaussian noise
     if gauss_noise:
         I_std = 5 # fluorescence microscopy data
-        I_mu = 30 # fluorescence microscopy data
-        rnd = np.clip(np.random.randn( T_im.shape )*I_std + I_mu,
-                      a_min=0, a_max=255)
-        T_im = cv2.add(T_im, rnd.astype(dtype))
+        I_mu = 20 # fluorescence microscopy data
+        rnd = np.random.randn( im_height, im_width, n_ch )*I_std + I_mu
+        T_im = np.clip(cv2.add(T_im, rnd.astype(dtype)), a_min=0, a_max=255)
 
+    # Randomly drop one or more channels given a specified string
+    #  -- opencv stores images as bgr --
+    if drop_ch and label in label_xform:
+        match_idx, diff_idx = utils.string_cmp(drop_ch, 'bgr',
+                                               match_case=False)
+
+        drop_num = np.random.randint(len(match_idx))
+
+        drop_idx = np.random.choice(match_idx,
+                                    size=drop_num,
+                                    replace=False)
+        for idx in drop_idx:
+            T_im[:,:,idx] = np.zeros_like((T_im[:,:,0]))
+            
     # Histology stain augmentation based on https://arxiv.org/pdf/1707.06183.pdf
     if stain_aug:
         var_a = np.sort(np.array([0.9, 1.1]))

@@ -139,15 +139,17 @@ class DataStruct:
                                                 filename.replace('.png', '.xml'))
 
         # Store mean pixel values (BGR)
-        self.pixel_mean = np.mean(np.mean(image_mean, axis=0), axis=0)
+        n_elem_ch = image_mean[:,:,0].size
+        self.pixel_mean = np.mean(image_mean.reshape([n_elem_ch, 3]), axis=0)
+        self.pixel_std = np.std(image_mean.reshape([n_elem_ch, 3]), axis=0)
 
         # Optional output argument
         if nargout:
             # Convert to RGB
-            image_mean = cv2.cvtColor(image_mean, cv2.COLOR_BGR2RGB)
+            image_mean = cv2.cvtColor(image_mean, cv2.COLOR_BGR2RGB).astype('uint8')
 
             # Normalize image
-            image_mean = img_utils.to_float(image_mean)
+#            image_mean = img_utils.to_float(image_mean)
 
             return image_mean
 
@@ -374,7 +376,7 @@ class DataStruct:
         if debug_mode or self.debug_mode:
             max_epochs = 2
             debug_mode = True
-        
+
         # Override self.reader_dict if given as kwarg
         if reader_dict is not None:
             print('Input reader_dict will override any existing values.')
@@ -440,13 +442,13 @@ class DataStruct:
         # Allocate output vars
         training_summary = {'model_path':[],
                             'train_df':[] }
-        
+
         # Train models using cross-validation
         print(20*'-')
         for fold, (r_train, r_valid) in enumerate(zip(reader_dict['train'],
                                                       reader_dict['validation'])):
             if verbose:
-                print('Training fold {0:02d}'.format(fold))
+                print('Fold:\t{0:02d}'.format(fold))
 
             # Call model training subfunction
             model_path, train_df = models.train(model_dict,
@@ -459,6 +461,8 @@ class DataStruct:
                                                 gpu=self.gpu,
                                                 model_save_root=self.model_save_root,
                                                 profiler_dir=self.profiler_dir,
+                                                rgb_mean=np.median(self.pixel_mean),
+                                                rgb_std=np.median(self.pixel_std),
                                                 tb_log_dir=self.tb_log_dir,
                                                 tb_freq=self.tb_freq,
                                                 extra_aug=True)
@@ -468,7 +472,7 @@ class DataStruct:
 
             # Save to output dictionary
             training_summary['model_path'].append(model_path)
-            training_summary['train_df'].append(train_df)        
+            training_summary['train_df'].append(train_df)
 
             print(20*'-' + '\n')
 
@@ -481,11 +485,11 @@ class DataStruct:
                                       columns={'fold'}) )
             output = output.append(df) #  ignore_index=True
 
-        
+
         training_summary['train_df'] = output #[['sample_count', 'mb_index',
 #                                               'epoch_index', 'train_loss', 'train_error',
 #                                               'test_error']]
-            
+
         return training_summary
 
     ##
@@ -594,13 +598,13 @@ class DataStruct:
         else:
             input_var = self.model_dict['input_var']
             label_var = self.model_dict['label_var']
-            
+
         reader_train =  reader_dict[partition][fold]['mb_source']
         input_map = {
             'features': reader_train.streams.features,
             'labels': reader_train.streams.labels
         }
-        
+
         data = reader_train.next_minibatch(num_samples,
                                            input_map=input_map)
 

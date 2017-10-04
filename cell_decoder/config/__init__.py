@@ -31,7 +31,7 @@ class DataStructParameters():
     A DataStructParameters class for storing data and model information.
     '''
     def __init__(self,
-                 debug_mode=True,
+                 debug_mode=False,
                  gpu=True,
                  image_height=224,
                  image_mean_filepath=None,
@@ -42,6 +42,7 @@ class DataStructParameters():
                  model_save_root=None,
                  num_channels=3,
                  pixel_mean=25,
+                 pixel_std=5,
                  profiler_dir=None,
                  random_seed=123456789,
                  scaling_factor=0.00390625,
