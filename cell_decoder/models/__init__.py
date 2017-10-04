@@ -49,6 +49,7 @@ from cntk.logging import log_number_of_parameters, ProgressPrinter
 from cntk.logging.graph import find_by_name, get_node_outputs
 from cntk.logging.progress_print import TensorBoardProgressWriter
 from cntk.losses import cross_entropy_with_softmax
+from cell_decoder.utils import python_layer
 
 
 ##
@@ -243,8 +244,8 @@ def train(model_dict,
 
     # define mapping from reader streams to network inputs
     input_map = {
-        input_var: reader_train.streams.features,
-        label_var: reader_train.streams.labels
+        'features': reader_train.streams.features, #input_var
+        'labels': reader_train.streams.labels # label_var
     }
 
     # Print the number of parameters
@@ -279,13 +280,13 @@ def train(model_dict,
 
             # Apply additional augmentation, optional
             if extra_aug:
+                data = python_layer(data)
                 # Rotate image by 90 degrees
                 # Flip image vert and/or horiz:  0 = ud; >0 = lr; <0 = ud + lr
                 # Randomly swap channels: 'rgb'
                 # Randomly drop channels: 'rgb'
                 # Apply low-pass Gausian filter
                 # Apply additive Gaussian noise
-                data = data
 
             # Update model
             trainer.train_minibatch(data)
@@ -300,9 +301,9 @@ def train(model_dict,
 
             # Update counts
             mb_count += 1
-            cumulative_count += data[label_var].num_samples
+            cumulative_count += data['labels'].num_samples # label_var
             epoch_fraction = np.divide(sample_count, train_epoch_size)
-            sample_count += data[label_var].num_samples
+            sample_count += data['labels'].num_samples # label_var
 
             #todo consider updating count before/ after
 
