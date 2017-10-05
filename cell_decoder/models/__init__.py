@@ -353,15 +353,15 @@ def train(model_dict,
         trainer.summarize_training_progress()
 
         #Write output images to tensorboard at the end of each epoch
-#TODO        if tensorboard_writer:
+        if tensorboard_writer:
             # Input images (after augmenation)
 #            tensorboard_writer.write_image('images',
 #                                           output[1],
 #                                           epoch_count)
             # First layer 
-#            tensorboard_writer.write_image('conv_1 weights',
-#                                           weights[1],
-#                                           epoch_count)
+            tensorboard_writer.write_image('conv_1 weights',
+                                           weights[1],
+                                           epoch_count)
 
         
         # Evaluate test set accuracy
@@ -381,7 +381,7 @@ def train(model_dict,
                                                epoch)
 
         if model_save_root:
-            checkpoint_name = model_name + "_epoch_{0}.dnn".format(epoch)
+            checkpoint_name = model_name + "_epoch_{0:03d}.dnn".format(epoch)
             checkpoint_filepath = os.path.join(model_save_root, checkpoint_name)
             trainer.save_checkpoint(checkpoint_filepath)
         else:

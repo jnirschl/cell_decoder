@@ -105,10 +105,10 @@ class LearningParameters():
     def __init__(self,
                  epsilon=1e-3, # Adadelta
                  l2_reg_weight=1e-4, # CNTK L2 reg is per sample, like caffe
-                 learning_rate=[ [0.01]*5 + [ 0.1]*30 + [0.01]*30 + [0.001]*25 + [1e-4]],
+                 learning_rate=[ [0.01]*5 + [ 0.1]*40 + [0.01]*50 + [0.001]*45 + [1e-4]],
                  max_epochs=150,
                  mb_size=64,
-                 momentum=[[0.99]*5 + [0.95]*30 + [0.9]],
+                 momentum=[[0.99]*5 + [0.95]*10 + [0.9]*30 + [0.8]],
                  momentum_time_const=1,
                  optimizer='momentum_sgd',
                  rho=0.9, # Adadelta
@@ -162,9 +162,11 @@ class LearningParameters():
                                    lr_schedule,
                                    mm_schedule,
                                    l2_regularization_weight=self.l2_reg_weight,
-                                   minibatch_size=self.mb_size, #OPT
-                                   epoch_size=epoch_size) #OPT
-#                                   gaussian_noise_injection_std_dev=1e-4, #OPT (injecting too large of gaussian noise std (0.1) really messes things up.
+                                   minibatch_size=self.mb_size,
+                                   epoch_size=epoch_size,
+                                   gaussian_noise_injection_std_dev=1e-3)
+            print('Gaussian noise injection')
+            #OPT (injecting too large of gaussian noise std (0.1) really messes things up.
 #                                   gradient_clipping_threshold_per_sample=True) # OPT
             # Assign output dictionary
             learn_dict = {

@@ -372,8 +372,9 @@ class DataStruct:
                     model_dict=None,
                     reader_dict=None,
                     learn_params=None,
-                    max_epochs=100,
+                    max_epochs=150,
                     mb_size=64,
+                    optimizer='momentum_sgd',
                     extra_aug=True,
                     valid_model_dict=VALID_MODEL_DICT_KEYS,
                     valid_reader_dict=VALID_READER_DICT_KEYS,
@@ -385,7 +386,7 @@ class DataStruct:
         training accuracy/ loss and validation accuracy.
         '''
         if self.debug_mode:
-            self.max_epochs = 2
+            max_epochs = 2
 
         # Override self.reader_dict if given as kwarg
         if reader_dict is not None:
@@ -444,8 +445,9 @@ class DataStruct:
 
             learn_params = []
             for fold in  reader_dict['train']:
-                train_learn = LearningParameters(max_epochs=self.max_epochs,
-                                                 mb_size=mb_size)
+                train_learn = LearningParameters(max_epochs=max_epochs,
+                                                 mb_size=mb_size,
+                                                 optimizer='momentum_sgd')
                 learn_dict = train_learn.compile(model_dict, fold['epoch_size'])
                 learn_params.append(learn_dict)
 
@@ -457,6 +459,9 @@ class DataStruct:
         print(20*'-')
         for fold, (r_train, r_valid) in enumerate(zip(reader_dict['train'],
                                                       reader_dict['validation'])):
+            if fold > 0:
+                break
+            
             if verbose:
                 print('Fold:\t{0:02d}'.format(fold))
 
