@@ -29,6 +29,9 @@ import os
 import copy
 import numpy as np
 import pandas as pd
+import time
+import glob
+import re
 
 #import pickle
 #from scipy.stats import kstest
@@ -62,6 +65,7 @@ def create(model_parameters,
            num_channels=3,
            scaling_factor=0.00390625,
            num_stack_layers=[2,3,5,2],
+           model_save_root='I:/Models/cntk/resnet',
            use_mean_image=False):
     '''
     models.create()
@@ -101,8 +105,8 @@ def create(model_parameters,
     dropout = model_parameters.dropout
     init = model_parameters.init
     model_name = model_parameters.model_name
-    model_path = model_parameters.model_path
-    network_name = model_parameters.network_name
+    model_path = model_parameters.model_save_root
+#    network_name = model_parameters.network_name
     num_filters = model_parameters.num_filters
     num_stack_layers = model_parameters.num_stack_layers
     pad = model_parameters.pad
@@ -135,22 +139,27 @@ def create(model_parameters,
     # Create resnet stack
     if resnet_layers in [18, 34]:
         ##TODO - not complete
-        net = resnet_shallow(input_var, num_stack_layers,
+        net = resnet_shallow(input_scaled, num_stack_layers,
                              num_filters, num_classes,
                              bias, bn_time_const,
                              dropout, init, pad)
 
     elif resnet_layers in [50, 101, 152]:
-        net = resnet_deep.bottleneck(input_var, num_stack_layers,
+        net = resnet_deep.bottleneck(input_scaled, num_stack_layers,
                                      num_filters, num_classes,
                                      bias, bn_time_const, dropout, init,
                                      pad)
 
     # Assign model dictionary
+    model_filepath = os.path.abspath(os.path.join(model_save_root,
+                                                  os.path.splitext(model_name)[0],
+                                                  model_name))
     model_dict = {'input_var':input_var,
                   'label_var':label_var,
                   'net':net,
-                  'num_classes':num_classes}
+                  'num_classes':num_classes,
+                  'model_filepath':model_filepath
+    }
 
     return model_dict
 
@@ -163,6 +172,7 @@ def train(model_dict,
           extra_aug=True,
           gpu=True,
           model_save_root=None,
+          model_suffix='',
           profiler_dir=None,
           reader_valid=None,
           rgb_mean=25,
@@ -170,6 +180,7 @@ def train(model_dict,
           tb_freq=10,
           tb_log_dir='C:/TensorBoard_logs/cntk',
           top_n=1,
+          fold=None,
           valid_epoch_size=None):
     '''
     models.train()
@@ -179,7 +190,8 @@ def train(model_dict,
     '''
     # Error check
     valid_model_dict = ['input_var', 'label_var',
-                        'net', 'num_classes']
+                        'net', 'num_classes',
+                        'model_filepath']
     for elem in model_dict.keys():
         if elem not in valid_model_dict:
             raise TypeError('Invalid model dictionary')
@@ -197,19 +209,34 @@ def train(model_dict,
     input_var = model_dict['input_var']
     label_var = model_dict['label_var']
     num_classes = model_dict['num_classes']
+    model_filepath = model_dict['model_filepath']
     n_ch, im_height, im_width = model_dict['input_var'].shape
 
+    if fold is None:
+        fold = ''
+    else:
+        fold = '_fold{0:02d}'.format(fold)
+
+    if model_filepath and isinstance(model_save_root, str):
+        model_save_root = os.path.dirname(model_filepath) + fold
+        model_name = os.path.splitext(os.path.basename(model_filepath))[0]
+        model_name = model_name + fold
+   
     # Set network
     net = model_dict['net']
 
     # Set debug opts
+    set_trace_level(TraceLevel(0))
     if debug_mode:
         print('Debug mode enabled.\n')
         train_epoch_size = learn_params['mb_size']
         set_computation_network_trace_level(0)
-        set_trace_level(TraceLevel(0))
         set_fixed_random_seed(260732) # random number from random.org
 
+    # Print
+    if extra_aug:
+        print('Using additional data augmentation.')
+        
     # Set the learning  parameters
     mb_size = learn_params['mb_size']
     momentum_time_constant = learn_params['momentum_time_const']
@@ -227,6 +254,8 @@ def train(model_dict,
 
     # Setup TensorBoard logging
     if tb_log_dir and isinstance(tb_log_dir, str):
+        tb_log_dir =  os.path.abspath(os.path.join(tb_log_dir,
+                                                   model_name))
         try: # Check the save directory
             os.stat(tb_log_dir)
         except:
@@ -268,7 +297,8 @@ def train(model_dict,
 
     # Train over (0, max_epochs)
     cumulative_count = 0
-    train_hx = {'sample_count':[0], 'mb_index':[0],
+    nntimer = NNTimer()
+    train_hx = {'sample_count':[0], 'mb_index':[0], 'time':[nntimer.start()],
                 'epoch_index':[0], 'train_loss':[np.nan],
                 'train_error':[np.nan], 'test_error':[np.nan]}
 
@@ -299,7 +329,9 @@ def train(model_dict,
                                                       rgb_std=rgb_std)
 
             # Update model
-            trainer.train_minibatch(data) #todo update test_minibatch?
+            output = trainer.train_minibatch(data,
+                                             outputs=[input_var])
+            #todo update test_minibatch?
 
             # Update counts
             mb_count += 1
@@ -314,14 +346,24 @@ def train(model_dict,
             train_hx['train_loss'].append(trainer.previous_minibatch_loss_average)
             train_hx['train_error'].append(trainer.previous_minibatch_evaluation_average)
             train_hx['test_error'].append(np.nan)
-
-
-
+            train_hx['time'].append(nntimer.lap())
             #todo consider updating count before/ after
 
         # Summarize training at the end of each epoch
         trainer.summarize_training_progress()
 
+        #Write output images to tensorboard at the end of each epoch
+#TODO        if tensorboard_writer:
+            # Input images (after augmenation)
+#            tensorboard_writer.write_image('images',
+#                                           output[1],
+#                                           epoch_count)
+            # First layer 
+#            tensorboard_writer.write_image('conv_1 weights',
+#                                           weights[1],
+#                                           epoch_count)
+
+        
         # Evaluate test set accuracy
         if False and reader_valid and valid_epoch_size and epoch > 0:
             test_accuracy = evaluate_model.start(trainer,
@@ -339,7 +381,7 @@ def train(model_dict,
                                                epoch)
 
         if model_save_root:
-            checkpoint_name = network_name + "_chkpt_{0}.dnn".format(epoch)
+            checkpoint_name = model_name + "_epoch_{0}.dnn".format(epoch)
             checkpoint_filepath = os.path.join(model_save_root, checkpoint_name)
             trainer.save_checkpoint(checkpoint_filepath)
         else:
@@ -354,6 +396,11 @@ def train(model_dict,
 
     # Convert train_hx to df and assign output
     train_hx_df = pd.DataFrame(train_hx)
+
+    if model_save_root:
+        train_hx_name = os.path.join(model_save_root,
+                                     model_name + '_training_history.csv')
+        train_hx_df.to_csv(train_hx_name)
 
     return checkpoint_filepath, train_hx_df
 
@@ -448,7 +495,7 @@ def evaluate(net, # model_dict
     else:
         output_filename =  'predictions.csv'
 
-    if data_struct['model_save_root']:
+    if model_save_root:
         output_filepath = os.path.join(data_struct['model_save_root'], output_filename)
     elif data_struct['output_dir']:
         output_filepath = os.path.join(data_struct['output_dir'], output_filename)
@@ -543,7 +590,7 @@ def evaluate(net, # model_dict
     return df, accuracy
 
 ##
-def find_recent(model_directory,
+def find_recent(model_save_dir,
                 filter_spec='*.dnn*'):
     '''
     models.find_recent(model_save_dir, filter_spec="*.dnn")
@@ -572,3 +619,36 @@ def find_recent(model_directory,
         print("No models found in directory:\n{}".format(model_save_dir))
 
     return model_path, model_name
+
+##
+class NNTimer(object):
+    def __init__(self, name=None):
+        self.name = name
+        self._start = None
+        self._abs_start = None
+        self.history = []
+
+    def start(self):
+        self._abs_start = time.time()
+        self._start = self._abs_start - self._abs_start
+        self.history = [self._start]
+
+        return self._start
+
+    def lap(self):
+        if self._start is None:
+            t0 = self.start()
+
+        elapsed = time.time() - self._abs_start
+        if self.history:
+            self.history.append(elapsed)
+
+        return elapsed
+
+    def stop(self):
+        if self._start is not None:
+            elapsed = time.time() - self._abs_start
+            if self.history:
+                self.history.append(elapsed)
+
+            return self.history

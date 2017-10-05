@@ -54,9 +54,9 @@ def apply_transform(T_im,
                     gauss_sigma=3,
                     im_height=224,
                     im_width=224,
-                    label_xform=np.setdiff1d(range(22,44),range(36,42)),
+                    label_xform=np.setdiff1d(range(22,43),range(35,41)),
                     n_ch=3,
-                    stain_aug=False):
+                    stain_aug=True):
     '''
     img_utils.apply_transorm()
 
@@ -103,7 +103,7 @@ def apply_transform(T_im,
             T_im[:,:,idx] = np.zeros_like((T_im[:,:,0]))
             
     # Histology stain augmentation based on https://arxiv.org/pdf/1707.06183.pdf
-    if stain_aug:
+    if stain_aug and label in [43]:
         var_a = np.sort(np.array([0.9, 1.1]))
         var_c = np.sort(np.array([-10, 10]))
 

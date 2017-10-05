@@ -52,7 +52,9 @@ class DataStruct:
     IMAGE_READERS = ['default', 'microscopy']
     VALID_MAPFILE_DICT_KEYS = ['train', 'validation', 'test']
     VALID_READER_DICT_KEYS = VALID_MAPFILE_DICT_KEYS
-    VALID_MODEL_DICT_KEYS = ['input_var', 'label_var', 'net', 'num_classes']
+    VALID_MODEL_DICT_KEYS = ['input_var', 'label_var',
+                             'net', 'num_classes',
+                             'model_filepath']
 
     # Initialize class instance attributes
     def __init__(self,
@@ -65,7 +67,7 @@ class DataStruct:
         '''
         assert os.path.isfile(mapfile), \
             'Mapfile {0:s} does not exist!'.format(mapfile)#
-        assert (isinstance(parameters, DataStructParameters.__class__) or \
+        assert (isinstance(parameters, DataStructParameters) or \
                 parameters is None), \
                 'Parameters must be a DataStructParameters class.'
 
@@ -89,9 +91,9 @@ class DataStruct:
         self.epoch_size = df.shape[0]
 
     ##
-    def read(self):
+    def read_mapfile(self):
         '''
-        DataStruct.read()
+        DataStruct.read_mapfile()
 
         Returns a the mapfile as a Pandas dataframe
         '''
@@ -107,7 +109,9 @@ class DataStruct:
                            savepath=os.path.join(ROOT_DIR, 'meanfiles'),
                            filename=None,
                            data_aug=True,
-                           debug_mode=True,
+                           im_height=None,
+                           im_width=None,
+                           n_ch=None,
                            save_img=True,
                            nargout=False):
         '''
@@ -131,6 +135,10 @@ class DataStruct:
         image_mean = compute_mean.image(self.mapfile,
                                         savepath=savepath,
                                         filename=filename,
+                                        debug_mode=self.debug_mode,
+                                        im_height=im_height,
+                                        im_width=im_width,
+                                        n_ch=n_ch,
                                         data_aug=data_aug,
                                         save_img=save_img)
 
@@ -146,10 +154,11 @@ class DataStruct:
         # Optional output argument
         if nargout:
             # Convert to RGB
-            image_mean = cv2.cvtColor(image_mean, cv2.COLOR_BGR2RGB).astype('uint8')
+            image_mean = cv2.cvtColor(image_mean, cv2.COLOR_BGR2RGB)
 
             # Normalize image
-#            image_mean = img_utils.to_float(image_mean)
+#            image_mean = image_mean.astype('uint8')
+#            img_utils.to_float(image_mean)
 
             return image_mean
 
@@ -183,10 +192,11 @@ class DataStruct:
 
         return mapfile_dict
 
+    
     ##
     def create_reader(self,
                       transform_params=None,
-                      held_out_test=0.1,
+                      held_out_test=0.05,
                       random_seed=None,
                       mapfile_dict=None,
                       reader='default',
@@ -329,17 +339,18 @@ class DataStruct:
         #            raise ValueError('Invalid number of resnet layers {0:d}!'.format(reader))
 
         # Validate model_parameters
-        valid_class = ResNetParameters().__class__
-        if (model_parameters and isinstance(model_parameters, valid_class)):
+        if (model_parameters and isinstance(model_parameters, ResNetParameters)):
             valid_model_params = ResNetParameters()
 
             for elem in model_parameters.__dict__:
                 if elem not in valid_model_params.__dict__.keys():
                     raise TypeError('Invalid model parameter key ({0:s})'.format(elem))
 
+            print('Using input model parameters.')
+
         else:
             print('Using default model parameters.')
-            model_parameters = ResNetParameters()
+            model_parameters = ResNetParameters(model_save_root=self.model_save_root)
 
         # Call models.create subfunction
         model_dict = models.create(model_parameters,
@@ -358,12 +369,12 @@ class DataStruct:
 
     ##
     def train_model(self,
-                    debug_mode=False,
                     model_dict=None,
                     reader_dict=None,
                     learn_params=None,
                     max_epochs=100,
                     mb_size=64,
+                    extra_aug=True,
                     valid_model_dict=VALID_MODEL_DICT_KEYS,
                     valid_reader_dict=VALID_READER_DICT_KEYS,
                     verbose=True):
@@ -373,9 +384,8 @@ class DataStruct:
         Returns the trained network and a history of the
         training accuracy/ loss and validation accuracy.
         '''
-        if debug_mode or self.debug_mode:
-            max_epochs = 2
-            debug_mode = True
+        if self.debug_mode:
+            self.max_epochs = 2
 
         # Override self.reader_dict if given as kwarg
         if reader_dict is not None:
@@ -434,7 +444,7 @@ class DataStruct:
 
             learn_params = []
             for fold in  reader_dict['train']:
-                train_learn = LearningParameters(max_epochs=max_epochs,
+                train_learn = LearningParameters(max_epochs=self.max_epochs,
                                                  mb_size=mb_size)
                 learn_dict = train_learn.compile(model_dict, fold['epoch_size'])
                 learn_params.append(learn_dict)
@@ -457,7 +467,7 @@ class DataStruct:
                                                 learn_params[fold],
                                                 reader_valid=r_valid['mb_source'],
                                                 valid_epoch_size=r_valid['epoch_size'],
-                                                debug_mode=debug_mode,
+                                                debug_mode=self.debug_mode,
                                                 gpu=self.gpu,
                                                 model_save_root=self.model_save_root,
                                                 profiler_dir=self.profiler_dir,
@@ -465,7 +475,8 @@ class DataStruct:
                                                 rgb_std=np.median(self.pixel_std),
                                                 tb_log_dir=self.tb_log_dir,
                                                 tb_freq=self.tb_freq,
-                                                extra_aug=True)
+                                                extra_aug=extra_aug,
+                                                fold=int(fold))
 
             # Clear gpu memory
             gc.collect()
@@ -517,6 +528,21 @@ class DataStruct:
 
         return 1
 
+    ##
+    def summarize(self):
+        '''
+        '''
+        # Read mapfile and summarize by label
+        df_count = mapfile_utils.summarize(mapfile=self.mapfile)
+
+        return df_count
+
+
+    def get_df(self):
+        '''
+        '''
+        d
+    
     ##
     def plot_features(self,
                       df=None,

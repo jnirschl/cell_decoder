@@ -113,7 +113,8 @@ def transform_layer(features,
                                          gauss_sigma=transform_dict['gauss_std'][idx],
                                          im_height=im_height,
                                          im_width=im_width,
-                                         n_ch=n_ch)
+                                         n_ch=n_ch,
+                                         stain_aug=transform_dict['stain_aug'])
 
         # Return to [N, 0, C, H, W]
         features[idx][0] = T_im.swapaxes(0, 2)
@@ -132,7 +133,8 @@ def set_transforms(mb_size,
                    drop_ch='rg',
                    gauss_blur=True,
                    gauss_noise=True,
-                   swap_ch='rg'):
+                   swap_ch='rg',
+                   stain_aug=True):
     '''
     python_layer.set_transforms(mb_size)
 
@@ -163,7 +165,7 @@ def set_transforms(mb_size,
         gauss_std = np.zeros((mb_size, 1), dtype=int)
     else:
         gauss_blur = np.random.randint(2, size=(mb_size, 1), dtype=bool)
-        gauss_std = np.clip(np.random.randn(mb_size, 1)*.5 + 1.5, a_min=0.25, a_max=3)
+        gauss_std = np.clip(np.random.randn(mb_size, 1)*.5 + 1, a_min=0.25, a_max=3)
 
     # Gaussian noise switch
     if deterministic or (not gauss_noise):
@@ -176,6 +178,7 @@ def set_transforms(mb_size,
                       'do_flip':do_flip, 'flip_type':flip_type,
                       'gauss_blur':gauss_blur, 'gauss_std':gauss_std,
                       'gauss_noise':gauss_noise, 'swap_ch':swap_ch,
-                      'drop_ch':drop_ch}
+                      'drop_ch':drop_ch, 'stain_aug':stain_aug
+    }
 
     return transform_dict

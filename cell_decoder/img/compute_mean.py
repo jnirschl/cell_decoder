@@ -44,7 +44,7 @@ cv2.setUseOptimized(True)
 # 1) Read data and compute mean
 # 2) Subtract mean
 # 3) Compute the cov mat
-# 4) Calculate the Eigenvectors and eigenvalues of the cov mat
+# 4) Calculate the intensity std/  Eigenvectors and eigenvalues of the cov mat
 
 ## TODO - update
 def image(mapfile,
@@ -52,7 +52,10 @@ def image(mapfile,
           savepath=None,
           filename="mean_img.png",
           data_aug=True,
-          debug_mode=True,
+          debug_mode=False,
+          im_height=None,
+          im_width=None,
+          n_ch=None,
           save_img=True):
     '''compute_mean.image()
 
@@ -83,7 +86,8 @@ def image(mapfile,
     # Read first image and allocate empty array
     img = cv2.imread(df['filepath'].ix[0])
     mean_img = np.zeros(img.shape, dtype=np.float32)
-    im_width, im_height, n_ch = mean_img.shape
+    if not (im_width and im_height and n_ch):
+        im_width, im_height, n_ch = mean_img.shape
 
     # Read images in dataframe
     for file_count, elem in enumerate(df.values):
@@ -103,6 +107,7 @@ def image(mapfile,
         # Accumulate image
         mean_img = cv2.accumulate(img, mean_img)
 
+        
     # Update file_count to account for zero indexing
     file_count += 1
     print('Processed {0:d} images.\n'.format(file_count))

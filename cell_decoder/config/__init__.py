@@ -39,7 +39,7 @@ class DataStructParameters():
                  mapfile=None,
                  microns_per_pixel=0.25,
                  model_dict=None,
-                 model_save_root=None,
+                 model_save_root='I:\Models\cntk\resnet\custom',
                  num_channels=3,
                  pixel_mean=25,
                  pixel_std=5,
@@ -98,13 +98,15 @@ class LearningParameters():
     A LearningParameters class for storing cntk learning parameters.
     '''
 
-    VALID_MODEL_DICT_KEYS =  ['input_var', 'label_var', 'net', 'num_classes']
+    VALID_MODEL_DICT_KEYS =  ['input_var', 'label_var',
+                              'net', 'num_classes',
+                              'model_filepath']
 
     def __init__(self,
                  epsilon=1e-3, # Adadelta
                  l2_reg_weight=1e-4, # CNTK L2 reg is per sample, like caffe
-                 learning_rate=[ [0.01]*5 + [ 0.1]*30 + [0.01]*30 + [0.001]*25],
-                 max_epochs=100,
+                 learning_rate=[ [0.01]*5 + [ 0.1]*30 + [0.01]*30 + [0.001]*25 + [1e-4]],
+                 max_epochs=150,
                  mb_size=64,
                  momentum=[[0.99]*5 + [0.95]*30 + [0.9]],
                  momentum_time_const=1,
@@ -161,9 +163,9 @@ class LearningParameters():
                                    mm_schedule,
                                    l2_regularization_weight=self.l2_reg_weight,
                                    minibatch_size=self.mb_size, #OPT
-                                   epoch_size=epoch_size, #OPT
-                                   gaussian_noise_injection_std_dev=0.01, #OPT
-                                   gradient_clipping_threshold_per_sample=True) # OPT
+                                   epoch_size=epoch_size) #OPT
+#                                   gaussian_noise_injection_std_dev=1e-4, #OPT (injecting too large of gaussian noise std (0.1) really messes things up.
+#                                   gradient_clipping_threshold_per_sample=True) # OPT
             # Assign output dictionary
             learn_dict = {
                 'learner': learner,
@@ -249,11 +251,12 @@ class ResNetParameters():
                  dropout=True,
                  init=C.initializer.he_normal(),
                  model_name='ResNet50_ImageNet.model',
-                 model_path='I:/Models/cntk/resnet',
+                 model_save_root='I:/Models/cntk/resnet/custom/',
                  num_filters=np.divide([64,128,256,512,1024,2048],2),
                  pad=True,
                  prefix='res',
                  resnet_layers=50,
+                 suffix='',
                  num_stack_layers=NUM_STACK_LAYERS):
 
         # Error check
@@ -269,14 +272,21 @@ class ResNetParameters():
         # Look up resnet num_stack_layers from class dict
         num_stack_layers = num_stack_layers[resnet_layers]
 
+        if suffix and isinstance(suffix, str):
+             suffix = '_{0:s}'.format(suffix)
+        else:
+            suffix = ''
+
         # Update instance attributes
         self.bias = bias
         self.bn_time_const = bn_time_const
         self.dropout = dropout
         self.init = init
-        self.model_name = '{0:s}_Res{1:d}.model'.format(date_time, resnet_layers) ## TODO edit
-        self.model_path = model_path
-        self.network_name = '{0:s}_Res{1:d}'.format(date_time, resnet_layers)
+        self.model_name = '{0:s}_Res{1:d}{2:s}.dnn'.format(date_time,
+                                                           resnet_layers,
+                                                           suffix) ## TODO edit
+        self.model_save_root = model_save_root
+#        self.network_name = '{0:s}_Res{1:d}'.format(date_time, resnet_layers)
         self.num_filters = num_filters
         self.num_stack_layers = num_stack_layers
         self.pad = pad
