@@ -1,4 +1,4 @@
-[<img src="https://raw.githubusercontent.com/jnirschl/cell_decoder/logo_lg.png">](https://github.com/jnirschl/cell_decoder)
+[<img src="https://github.com/jnirschl/cell_decoder/logo_lg.png">](https://github.com/jnirschl/cell_decoder)
 
 # Cell DECODER: Cell DEep learning and COmputational DEscriptor toolbox.
 
@@ -6,13 +6,13 @@
 
 ------------------
 ## Contents
-* [Introduction](##introduction)
-* [Installation guide](##installation-guide)
-* [Example usage](##example-usage)
-  * [Deep feature extraction](###deep-feature-extraction)
-  * [Expected output](###expected-output)
-* [License and citation](##license-and-citation)
-* [Acknowledgements](##acknowledgements)
+* [Introduction](#introduction)
+* [Installation guide](#installation-guide)
+* [Example usage](#example-usage)
+  * [Deep feature extraction](#deep-feature-extraction)
+  * [Expected output](#expected-output)
+* [License and citation](#license-and-citation)
+* [Acknowledgements](#acknowledgements)
 
 ------------------
 ## Introduction
@@ -23,6 +23,7 @@ The Cell DEep learning and COmputational DEscriptoR (DECODER) toolbox is an API,
 Cell DECODER uses the Python programming language. Previous experience with Python is helpful, but not strictly necessary. The installation time for a user with previous experience in Python user is less than 30 minutes. experienced with Python
 
 ### System requirements
+
 ||         System requirements           ||
 | ----------          | :----------:      |
 | Operating system    | Windows 8.1 or 10 |
@@ -30,7 +31,7 @@ Cell DECODER uses the Python programming language. Previous experience with Pyth
 | Processor           | 2 GHz             |
 | Memory (RAM)        | 2 GB              |
 | Hard-drive space    | 50 MB             |
-[Minimal system requirements for installing Cell DECODER. This does not include hard-drive space required for additional software packages or dependencies such as [Anaconda Python](https://conda.io/docs/user-guide/install/index.html) or [CNTK](https://docs.microsoft.com/en-us/cognitive-toolkit/Setup-CNTK-on-your-machine). A Graphics Processing Unit (GPU) is optional, but will accelerate performance. CUDA 8.0 and cuDNN 6 are required for GPU-acceleration. See ]
+[Minimal system requirements for installing Cell DECODER. This does not include hard-drive space required for additional software packages or dependencies such as [Anaconda Python](https://conda.io/docs/user-guide/install/index.html) or [CNTK](https://docs.microsoft.com/en-us/cognitive-toolkit/Setup-CNTK-on-your-machine). A Graphics Processing Unit (GPU) is optional, but will accelerate performance. CUDA 8.0 and cuDNN 6 are required for GPU-acceleration. Refer to the online user manual for your GPU for more instructions.]
 
 ## 1. Install Python 3.5
 We recommend the Anaconda Python distribution, which allows multiple Python environments with different configurations. Install Python 3.5 and refer to the [Anaconda Python user guide for installation instructions](https://conda.io/docs/user-guide/install/index.html)
@@ -53,7 +54,7 @@ Running Cell DECODER version 0.1.0
 
 
 ## Example usage
-Below, we provide example input and output for the deep feature extraction functionality of Cell DECODER. We also provide executable Jupyter Notebooks in the Examples folder. These notebooks contain tutorial text, source code, and example outputs.
+Below, we provide example input and output for the deep feature extraction functionality of Cell DECODER. We also provide executable Jupyter Notebooks in the [Examples folder](https://github.com/jnirschl/cell_decoder/examples). These notebooks contain tutorial text, source code, and example outputs.
 
 ### Deep feature extraction
 ```python
@@ -68,7 +69,7 @@ output_file = [PATH_TO_SAVE_OUTPUT]
 
 cell_decoder.extract_features(deep_cell_Res50, map_file,
                               output_file)
-                              ```
+```
 
 ### Expected output
 ```python
