@@ -32,10 +32,10 @@ Cell DECODER uses the Python programming language. Previous experience with Pyth
 | Memory (RAM)        | 2 GB              |
 | Hard-drive space    | 50 MB             |
 
-[Minimal system requirements for installing Cell DECODER. This does not include hard-drive space required for additional software packages or dependencies such as [Anaconda Python](https://conda.io/docs/user-guide/install/index.html) or [CNTK](https://docs.microsoft.com/en-us/cognitive-toolkit/Setup-CNTK-on-your-machine). A Graphics Processing Unit (GPU) is optional, but will accelerate performance. CUDA 8.0 and cuDNN 6 are required for GPU-acceleration. Refer to the online user manual for your GPU for more instructions.]
+**Minimal system requirements for installing Cell DECODER.** This does not include hard-drive space required for additional software packages or dependencies such as [Anaconda Python](https://conda.io/docs/user-guide/install/index.html) or [CNTK](https://docs.microsoft.com/en-us/cognitive-toolkit/Setup-CNTK-on-your-machine). A Graphics Processing Unit (GPU) is optional, but will accelerate performance. CUDA 8.0 and cuDNN 6 are required for GPU-acceleration. Refer to the online user manual for your GPU for more instructions.
 
 ## 1. Install Python 3.5
-We recommend the Anaconda Python distribution, which allows multiple Python environments with different configurations. Install Python 3.5 and refer to the [Anaconda Python user guide for installation instructions](https://conda.io/docs/user-guide/install/index.html)
+We recommend the Anaconda Python distribution, which allows multiple Python environments with different configurations. Install **Python 3.5** and refer to the [Anaconda Python user guide for installation instructions](https://conda.io/docs/user-guide/install/index.html)
 
 ## 2. Install CNTK
 Cell DECODER uses CNTK as a backend for training and evaluating neural networks. Please follow the [CNTK installation instructions](https://docs.microsoft.com/en-us/cognitive-toolkit/Setup-CNTK-on-your-machine). 
