@@ -1,4 +1,4 @@
-[<img src="https://github.com/jnirschl/cell_decoder/logo_lg.png">](https://github.com/jnirschl/cell_decoder)
+[<img src="https://raw.githubusercontent.com/jnirschl/cell_decoder/master/logo_lg.png">](https://github.com/jnirschl/cell_decoder)
 
 # Cell DECODER: Cell DEep learning and COmputational DEscriptor toolbox.
 
@@ -55,7 +55,7 @@ Running Cell DECODER version 0.1.0
 
 
 ## Example usage
-Below, we provide example input and output for the deep feature extraction functionality of Cell DECODER. We also provide executable Jupyter Notebooks in the [Examples folder](https://github.com/jnirschl/cell_decoder/examples). These notebooks contain tutorial text, source code, and example outputs.
+Below, we provide example input and output for the deep feature extraction functionality of Cell DECODER. We also provide executable Jupyter Notebooks in the [Examples folder](https://github.com/jnirschl/cell_decoder/tree/master/examples). These notebooks contain tutorial text, source code, and example outputs.
 
 ### Deep feature extraction
 ```python
@@ -102,4 +102,4 @@ Bibtex formatted reference:
 ## Acknowledgements
 The authors gratefully acknowledge the NVIDIA Corporation's Academic Hardware Grant of a Titan-X GPU. This research was supported by National Institutes of Health grants NINDS F30-NS092227 to Jeff Nirschl and NIH GM48661 to Erika L. F. Holzbaur.
 
-The content is solely the responsibility of the authors and does not necessarily represent the official views of the National Institutes of Health or the NVIDIA corporation. The funders had no role in software development for Cell DECODER, study design, data collection and analysis, decision to publish, or preparation of this manuscript.
+The content is solely the responsibility of the authors and does not represent the official views of the National Institutes of Health or the NVIDIA corporation. The funders had no role in software development for Cell DECODER, study design, data collection and analysis, decision to publish, or preparation of this manuscript.
