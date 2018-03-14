@@ -24,7 +24,7 @@ Cell DECODER uses the Python programming language. Previous experience with Pyth
 
 ### System requirements
 
-||         System requirements           ||
+| System requirements |                   |
 | ----------          | :----------:      |
 | Operating system    | Windows 8.1 or 10 |
 |                     | Ubuntu 16.04      |
