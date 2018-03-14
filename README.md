@@ -1,4 +1,4 @@
-[<img src="logo_lg.png">](https://github.com/jnirschl/cell_decoder)
+[<img src="logo_sm.png">](https://github.com/jnirschl/cell_decoder)
 
 # Cell DECODER: Cell DEep learning and COmputational DEscriptor toolbox.
 
