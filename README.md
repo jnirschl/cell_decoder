@@ -1,5 +1,4 @@
-[<img src="https://raw.githubusercontent.com/jnirschl/cell_decoder/master/logo_lg.png">](https://github.com/jnirschl/cell_decoder)
-![alt text](https://raw.githubusercontent.com/jnirschl/cell_decoder/master/logo_lg.png")
+[<img src="https://raw.github.com/jnirschl/cell_decoder/master/logo_lg.png">](https://github.com/jnirschl/cell_decoder)
 
 # Cell DECODER: Cell DEep learning and COmputational DEscriptor toolbox.
 
