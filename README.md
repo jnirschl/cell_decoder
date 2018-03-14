@@ -20,7 +20,7 @@ The Cell DEep learning and COmputational DEscriptoR (DECODER) toolbox is an API,
 
 ------------------
 ## Installation guide
-Cell DECODER uses the Python programming language. Previous experience with Python is helpful, but not strictly necessary. The installation time for a user with previous experience in Python user is less than 30 minutes. experienced with Python
+Cell DECODER uses the Python programming language. Previous experience with Python is helpful, but not strictly necessary. The installation time for a user with previous experience in Python user is less than 30 minutes.
 
 ### System requirements
 
@@ -31,6 +31,7 @@ Cell DECODER uses the Python programming language. Previous experience with Pyth
 | Processor           | 2 GHz             |
 | Memory (RAM)        | 2 GB              |
 | Hard-drive space    | 50 MB             |
+
 [Minimal system requirements for installing Cell DECODER. This does not include hard-drive space required for additional software packages or dependencies such as [Anaconda Python](https://conda.io/docs/user-guide/install/index.html) or [CNTK](https://docs.microsoft.com/en-us/cognitive-toolkit/Setup-CNTK-on-your-machine). A Graphics Processing Unit (GPU) is optional, but will accelerate performance. CUDA 8.0 and cuDNN 6 are required for GPU-acceleration. Refer to the online user manual for your GPU for more instructions.]
 
 ## 1. Install Python 3.5
@@ -80,13 +81,12 @@ cell_decoder.plot(TODO)
 
 ------------------
 ## License and Citation
-Images and data from the Human Protein Atlas are used with permission under the CC BY-NC-ND 4.0 License.
+Images and data from the Human Protein Atlas were used with permission under the [CC BY-NC-ND 4.0 License](https://creativecommons.org/licenses/by-nc-nd/4.0/).
 
 The Cell DECODER toolbox is released under the [MIT License](https://opensource.org/licenses/MIT).
 
 If you use Cell DECODER for your research, please cite:
-Nirschl JJ, Moore AM, Holzbaur ELF. Cell DECODER: A Deep Learning
-Package for Phenotypic Profiling in Biological Image Analysis.
+Nirschl JJ, Moore AM, Holzbaur ELF. Cell DECODER: A Neral Network Toolbox for Phenotypic Profiling in Cell Biology.
 
 Bibtex formatted reference:
 ```text
