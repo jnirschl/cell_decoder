@@ -94,7 +94,7 @@ def transform_layer(features,
     # Each element is Format is:
     #     [N, 1, C, H, W]
     #     Channels are in bgr format
-    for idx in range(0, features.shape[0]):
+    for idx in range(features.shape[0]):
         # Extract 1 img and convert to HWC
         Orig_im = features[idx][0].swapaxes(0, 2)
 

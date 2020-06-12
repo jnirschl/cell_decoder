@@ -42,7 +42,7 @@ def image(mapfile,
     default_reader.image(mapfile, transform_params, num_classes,
                         is_training=True, use_image_mean=True)
     '''
-    if not (type(transform_params) == type(TransformParameters())):
+    if type(transform_params) != type(TransformParameters()):
         raise ValueError('transform_params must be a valid TransformParameters class.')
 
     # Allocate empty transforms list
@@ -51,7 +51,7 @@ def image(mapfile,
     # Read mapfile and set epoch_size
     df, _, _ = mapfile_utils.read(mapfile)
     epoch_size = df.shape[0]
-    
+
     # Set num_classes, if not entered
     if num_classes is None:
         num_classes = len(df['labels'].unique())

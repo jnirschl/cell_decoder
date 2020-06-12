@@ -38,10 +38,8 @@ def rotate(img, angle, center=None, scale=1.0):
 
     # perform the rotation
     rot_mat = cv2.getRotationMatrix2D(center, angle, scale)
-    img_rotated = cv2.warpAffine(img, rot_mat, (img_width, img_height))
-
     # return the rotated image
-    return img_rotated
+    return cv2.warpAffine(img, rot_mat, (img_width, img_height))
 
 ## Resize image, preserving aspect ratio
 # ----- Adapted from PyImageSearch imutils/convenience.py
