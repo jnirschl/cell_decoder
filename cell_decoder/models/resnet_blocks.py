@@ -103,9 +103,7 @@ def basic(input_var, num_filters, bn_time_const=4096,
 
     # Add to original
     p = C.ops.plus(c2, input_var, name=name)
-    r = relu(p, name=name+'_relu')
-
-    return r
+    return relu(p, name=name+'_relu')
 
 
 ## Feature map reduction
@@ -138,9 +136,7 @@ def basic_inc(input_var, num_filters, strides=(2,2),
                  name=name+'_branch2c')
 
     p  = C.ops.plus(c2, s, name=name)
-    r  = relu(p,name=name+'_relu')
-
-    return r
+    return relu(p,name=name+'_relu')
 
 
 ## Resnet bottleneck block
@@ -174,9 +170,7 @@ def bottleneck(input_var, num_filters, inter_out_channels,
                  name=name+'_branch2c')
 
     p  = C.ops.plus(c3, input_var, name=name)
-    r  = relu(p, name=name+'_relu')
-
-    return r
+    return relu(p, name=name+'_relu')
 
 
 ## Feature reduction with bottleneck
@@ -218,9 +212,7 @@ def bottleneck_inc(input_var, num_filters, inter_out_channels,
                  name=name+'_branch1')
 
     p  = C.ops.plus(c3, s, name=name)
-    r  = relu(p, name=name+'_relu')
-
-    return r
+    return relu(p, name=name+'_relu')
 
 
 ## Create a basic ResNet stack

@@ -167,9 +167,7 @@ class MicroscopyReader(object): # UserMinibatchSource
         '''
         Return True if there are more mini-batches.
         '''
-        if self.batch_start < len(self.data):
-            return True
-        return False
+        return self.batch_start < len(self.data)
     
     ## Restart epoch (training mode only)
     def reset(self):
@@ -257,7 +255,7 @@ class MicroscopyReader(object): # UserMinibatchSource
         Probability: pick one emotion based on the probability distribtuion.
         Multi-target: 
         '''
-        if self.training_mode == 'majority' or self.training_mode == 'crossentropy': 
+        if self.training_mode in ['majority', 'crossentropy']: 
             return target
         elif self.training_mode == 'probability': 
             idx             = np.random.choice(len(target), p=target) 

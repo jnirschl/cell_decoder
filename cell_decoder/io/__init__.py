@@ -570,7 +570,10 @@ class DataStruct:
             raise NotImplemented('This section is not complete!')
 
         # Call plotting subfunction
-        if backend == 'plotly':
+        if backend == 'holoviews':
+            raise NotImplemented('This section is not complete!')
+
+        elif backend == 'plotly':
             fig = prepare_plotly(df,
                                  title=None,
                                  size=5,
@@ -580,9 +583,6 @@ class DataStruct:
                                  mode='markers',
                                  hovermode='closest',
                                  text_labels=None)
-        elif backend == 'holoviews':
-            raise NotImplemented('This section is not complete!')
-
         return fig
 
 
@@ -636,10 +636,8 @@ class DataStruct:
             'labels': reader_train.streams.labels
         }
 
-        data = reader_train.next_minibatch(num_samples,
+        return reader_train.next_minibatch(num_samples,
                                            input_map=input_map)
-
-        return data
 
     ##
     def save(self,

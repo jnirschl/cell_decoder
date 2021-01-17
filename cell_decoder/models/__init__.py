@@ -154,14 +154,12 @@ def create(model_parameters,
     model_filepath = os.path.abspath(os.path.join(model_save_root,
                                                   os.path.splitext(model_name)[0],
                                                   model_name))
-    model_dict = {'input_var':input_var,
+    return {'input_var':input_var,
                   'label_var':label_var,
                   'net':net,
                   'num_classes':num_classes,
                   'model_filepath':model_filepath
     }
-
-    return model_dict
 
 ##
 def train(model_dict,
@@ -412,9 +410,7 @@ def clone():
     Returns a cloned network.
     '''
 
-    net = 1
-
-    return net
+    return 1
 
 ##
 def load():

@@ -52,11 +52,7 @@ class DataStructParameters():
                  use_mean_image=False):
 
         # Input mapfile, partition into train/ valid/ test later
-        if mapfile:
-            self.mapfile = mapfile
-        else:
-            self.mapfile = None
-
+        self.mapfile = mapfile if mapfile else None
         # Set the filepath for the text labels
         self.text_labels = text_labels
 
@@ -274,11 +270,7 @@ class ResNetParameters():
         # Look up resnet num_stack_layers from class dict
         num_stack_layers = num_stack_layers[resnet_layers]
 
-        if suffix and isinstance(suffix, str):
-             suffix = '_{0:s}'.format(suffix)
-        else:
-            suffix = ''
-
+        suffix = '_{0:s}'.format(suffix) if suffix and isinstance(suffix, str) else ''
         # Update instance attributes
         self.bias = bias
         self.bn_time_const = bn_time_const

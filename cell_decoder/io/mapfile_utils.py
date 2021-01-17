@@ -195,18 +195,12 @@ def prepend_filepath(mapfile,
         # Prepend filepath
         df['filepath'] = prefix + df['filepath'].astype(str)
 
-        if overwrite:
-            if file_ext =='.tsv':
-                df.to_csv(mapfile, sep='\t', header=None, index=False)
-            elif file_ext =='.csv':
-                df.to_csv(mapfile, sep=',', header=None, index=False)
-                
-        else:
+        if not overwrite:
             mapfile = mapfile.replace(file_ext, 'copy' + file_ext)
-            if file_ext =='.tsv':
-                df.to_csv(mapfile, sep='\t', header=None, index=False)
-            elif file_ext =='.csv':
-                df.to_csv(mapfile, sep=',', header=None, index=False)
+        if file_ext =='.tsv':
+            df.to_csv(mapfile, sep='\t', header=None, index=False)
+        elif file_ext =='.csv':
+            df.to_csv(mapfile, sep=',', header=None, index=False)
 
     return df, mapfile
 
@@ -421,7 +415,7 @@ def crossval(df=None,
     if mapfile is None:
         assert isinstance(df, pd.DataFrame), \
             'df must be a Pandas DataFrame!'
-        
+
     elif df is None:
         assert (isinstance(mapfile, str) and os.path.isfile(mapfile)), \
             'Mapfile must be a valid file!'
@@ -432,7 +426,7 @@ def crossval(df=None,
         save_root = mapfile_root
     else:
         raise ValueError('A valid mapfile or Pandas dataframe is required!')      
-        
+
     # Separate a held-out test set
     if held_out_test > 0 and held_out_test < 1:
         # Assume held_out_test is a fraction.
@@ -461,18 +455,18 @@ def crossval(df=None,
 
         # Adjust k_fold based on min class number
         df_summary = summarize(df=df)
-        
+
         if df_summary['count'].min() < k_fold:
             min_idx = np.argmin(df_summary['count'])
             k_fold = df_summary['count'].min()
-            
+
             print_text = 'Class {0:d} has too few examples ({1:d})' + \
                          'for {2:d} fold cross-validation!\nUsing {1:d}' +\
                          ' fold cross-validation instead!'
             print(print_text.format(df_summary['label'].ix[min_idx],
                                     df_summary['count'].ix[min_idx],
                                     k_fold))
-            
+
     else:
         # No held-out test
         df_held_out = None
@@ -499,8 +493,12 @@ def crossval(df=None,
 
         # Save mapfiles
         save_filename = '{0:02d}_train_mapfile' + file_ext
-        save_filepath = os.path.join(save_root, save_filename)    
-        train_mapfile_list = [elem.format(fold) for fold, elem in zip(range(0, k_fold), [save_filepath]*k_fold)]
+        save_filepath = os.path.join(save_root, save_filename)
+        train_mapfile_list = [
+            elem.format(fold)
+            for fold, elem in zip(range(k_fold), [save_filepath] * k_fold)
+        ]
+
         test_mapfile_list = [elem.replace('train', 'val') for elem in train_mapfile_list]
 
         # 
@@ -508,10 +506,10 @@ def crossval(df=None,
             fold = int(fold)
             test_ix = test_df.index
             train_ix = np.setdiff1d(df.index, test_ix)
-            
+
             # Get train df
             train_df = df.ix[train_ix]
-            
+
             # write csv
             train_df.to_csv(save_filepath.format(fold),
                             sep=sep, header=False, index=False,
@@ -519,7 +517,7 @@ def crossval(df=None,
             test_df.to_csv(save_filepath.replace('train','val').format(fold),
                            sep=sep, header=False, index=False,
                            columns=['filepath','label'])
-        
+
         # Save all training mapfile
         save_filepath = save_filepath.replace('{0:02d}_','')
         df.to_csv(save_filepath.replace('train','all_train-val'), sep=sep,

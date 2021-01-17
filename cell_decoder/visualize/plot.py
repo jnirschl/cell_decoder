@@ -81,11 +81,7 @@ def unique_images(mapfile,
     # Pre-allocate output list
     hv_img = []
     for idx, (filepath, label) in enumerate(df_sample.values):
-        if text_labels:
-            tmp_label = text_labels[idx]
-        else:
-            tmp_label = str(label)
-
+        tmp_label = text_labels[idx] if text_labels else str(label)
         bgr_img = cv2.imread(filepath)
 
         #TODO setup resize vs crop image
@@ -185,5 +181,4 @@ def prepare_holoviews(df):
     
     '''
 
-    Layout = 1
-    return Layout
+    return 1
